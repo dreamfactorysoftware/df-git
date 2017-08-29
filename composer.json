@@ -1,0 +1,50 @@
+{
+  "name":        "dreamfactory/df-git",
+  "description": "Git services for DreamFactory Platform 2.0",
+  "keywords":    [
+    "dreamfactory",
+    "api",
+    "rest",
+    "git",
+    "github",
+    "gitlab",
+    "version",
+    "scm",
+    "source",
+    "version"
+  ],
+  "homepage":    "https://www.dreamfactory.com/",
+  "license":     "proprietary",
+  "authors":     [
+    {
+      "name":  "Arif Islam",
+      "email": "arifislam@dreamfactory.com"
+    },
+    {
+      "name":  "Lee Hicks",
+      "email": "leehicks@dreamfactory.com"
+    }
+  ],
+  "support":     {
+    "email":  "support@dreamfactory.com",
+    "source": "https://github.com/dreamfactorysoftware/df-git",
+    "issues": "https://github.com/dreamfactorysoftware/df-git/issues",
+    "wiki":   "https://wiki.dreamfactory.com"
+  },
+  "require":     {
+    "dreamfactory/df-core": "~0.12.0",
+    "graham-campbell/github": "^5.0",
+    "vinkla/gitlab": "^2.6.0",
+    "php-http/guzzle6-adapter": "^1.1"
+  },
+  "autoload":    {
+    "psr-4": {
+      "DreamFactory\\Core\\Git\\": "src/"
+    }
+  },
+  "extra":       {
+    "branch-alias": {
+      "dev-develop": "0.12.x-dev"
+    }
+  }
+}
