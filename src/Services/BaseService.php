@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\Git\Services;
 
 use DreamFactory\Core\Services\BaseRestService;

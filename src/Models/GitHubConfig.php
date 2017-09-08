@@ -12,6 +12,7 @@ class GitHubConfig extends BaseServiceConfigModel
     /** @var array */
     protected $fillable = [
         'service_id',
+        'vendor',
         'username',
         'password',
         'token',
@@ -36,6 +37,10 @@ class GitHubConfig extends BaseServiceConfigModel
         parent::prepareConfigSchemaField($schema);
 
         switch ($schema['name']) {
+            case 'vendor':
+                $schema['label'] = 'Account/Organization';
+                $schema['description'] = 'GitHub Account/Organization/Username for accessing a repository.';
+                break;
             case 'username':
                 $schema['label'] = 'Username';
                 $schema['description'] = 'Your GitHub username goes here.';

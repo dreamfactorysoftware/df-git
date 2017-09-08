@@ -3,7 +3,6 @@
 namespace DreamFactory\Core\Git\Services;
 
 use DreamFactory\Core\Git\Components\GitLabClient;
-use Gitlab\Client;
 use DreamFactory\Core\Git\Resources\GitLabRepo;
 
 class GitLab extends BaseService
@@ -17,6 +16,7 @@ class GitLab extends BaseService
         ]
     ];
 
+    /** @inheritdoc */
     protected function setClient($config)
     {
         /** @var \DreamFactory\Core\Git\Components\GitLabClient */

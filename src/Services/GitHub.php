@@ -16,6 +16,7 @@ class GitHub extends BaseService
         ]
     ];
 
+    /** @inheritdoc */
     protected function setClient($config)
     {
         /** @var GitHubClient client */

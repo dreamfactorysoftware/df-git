@@ -15,7 +15,7 @@ class CreateGitlabConfigTable extends Migration
     {
         Schema::create(
             'gitlab_config',
-            function (Blueprint $t){
+            function (Blueprint $t) {
                 $t->integer('service_id')->unsigned()->primary();
                 $t->foreign('service_id')->references('id')->on('service')->onDelete('cascade');
                 $t->string('base_url');

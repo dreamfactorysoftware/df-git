@@ -2,9 +2,11 @@
 
 namespace DreamFactory\Core\Git\Resources;
 
+use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Resources\BaseRestResource;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Utility\ResourcesWrapper;
+use Github\Exception\RuntimeException;
 
 class BaseResource extends BaseRestResource
 {
@@ -22,13 +24,11 @@ class BaseResource extends BaseRestResource
         return static::RESOURCE_IDENTIFIER;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function handleGET()
     {
-        $username = $this->parent->getConfig('username');
-        $otherUser = $this->request->getParameter('username');
-        if(!empty($otherUser)){
-            $username = $otherUser;
-        }
         $branch = $this->request->getParameter('branch', $this->request->getParameter('tag', 'master'));
         $getContent = $this->request->getParameterAsBool('content');
         $asList = $this->request->getParameter(ApiOptions::AS_LIST);
@@ -36,22 +36,25 @@ class BaseResource extends BaseRestResource
 
         $resourceArray = $this->resourceArray;
         $repo = array_get($resourceArray, 0);
+        //array_shift($resourceArray);
+        //$path = implode('/', $resourceArray);
 
-        if(!empty($username)) {
-            $this->parent->getClient()->setUsername($username);
-        }
-        if(empty($repo)){
-            $content = $this->parent->getClient()->repoAll();
-        } else {
-            $path = $this->request->getParameter('path');
-
-            if ($getContent && !empty($path)) {
-                $content = $this->parent->getClient()->repoGetFileContent($repo, $path, $branch);
-            } elseif (!empty($path)) {
-                $content = $this->parent->getClient()->repoGetFileInfo($repo, $path, $branch);
+        try {
+            if (empty($repo)) {
+                $content = $this->parent->getClient()->repoAll();
             } else {
-                $content = $this->parent->getClient()->repoList($repo, $path, $branch);
+                $path = $this->request->getParameter('path');
+
+                if ($getContent && !empty($path)) {
+                    $content = $this->parent->getClient()->repoGetFileContent($repo, $path, $branch);
+                } elseif (!empty($path)) {
+                    $content = $this->parent->getClient()->repoGetFileInfo($repo, $path, $branch);
+                } else {
+                    $content = $this->parent->getClient()->repoList($repo, $path, $branch);
+                }
             }
+        } catch (RuntimeException $e) {
+            throw new RestException($e->getCode(), $e->getMessage());
         }
 
         if (is_array($content)) {

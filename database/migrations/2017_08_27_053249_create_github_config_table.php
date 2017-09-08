@@ -15,10 +15,11 @@ class CreateGithubConfigTable extends Migration
     {
         Schema::create(
             'github_config',
-            function (Blueprint $t){
+            function (Blueprint $t) {
                 $t->integer('service_id')->unsigned()->primary();
                 $t->foreign('service_id')->references('id')->on('service')->onDelete('cascade');
-                $t->string('username');
+                $t->string('vendor');
+                $t->string('username')->nullable();
                 $t->text('password')->nullable();
                 $t->text('token')->nullable();
             }
