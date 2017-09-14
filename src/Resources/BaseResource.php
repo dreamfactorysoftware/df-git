@@ -25,6 +25,20 @@ class BaseResource extends BaseRestResource
     }
 
     /**
+     * @return array
+     */
+    protected static function getResourceDefinition()
+    {
+        return [
+            'type'       => 'object',
+            'properties' => [
+                'name' => ['type' => 'string'],
+                'path' => ['type' => 'string'],
+            ]
+        ];
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function handleGET()
@@ -56,6 +70,8 @@ class BaseResource extends BaseRestResource
                 }
             }
         } catch (RuntimeException $e) {
+            throw new RestException($e->getCode(), $e->getMessage());
+        } catch (\Gitlab\Exception\RuntimeException $e) {
             throw new RestException($e->getCode(), $e->getMessage());
         }
 
@@ -150,15 +166,7 @@ class BaseResource extends BaseRestResource
                         'properties' => [
                             'resource' => [
                                 'type'  => 'array',
-                                'items' => [
-                                    [
-                                        'type'       => 'object',
-                                        'properties' => [
-                                            'name' => ['type' => 'string'],
-                                            'path' => ['type' => 'string'],
-                                        ]
-                                    ]
-                                ]
+                                'items' => [static::getResourceDefinition()]
                             ],
                         ]
                     ]
@@ -201,13 +209,7 @@ class BaseResource extends BaseRestResource
             'responses'   => [
                 '200'     => [
                     'description' => 'Success',
-                    'schema'      => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'name' => ['type' => 'string'],
-                            'path' => ['type' => 'string'],
-                        ]
-                    ]
+                    'schema'      => static::getResourceDefinition(),
                 ],
                 'default' => [
                     'description' => 'Error',

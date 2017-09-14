@@ -3,14 +3,13 @@
 namespace DreamFactory\Core\Git\Components;
 
 use Cache;
-use Gitlab\Client;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use Gitlab\Exception\RuntimeException;
 
 class GitLabClient implements ClientInterface
 {
-    /** @var \Gitlab\Client */
+    /** @var \DreamFactory\Core\Git\Components\GitLabClientExtension */
     protected $client;
 
     /** @var array */
@@ -27,12 +26,12 @@ class GitLabClient implements ClientInterface
     public function __construct($config)
     {
         $this->validateConfig($config);
-        /** @var Client $this ->client */
-        $this->client = new Client($config['base_url']);
+        /** @var \DreamFactory\Core\Git\Components\GitLabClientExtension $this ->client */
+        $this->client = new GitLabClientExtension($config['base_url']);
 
         $this->client->authenticate(
             $config['token'],
-            array_get($config, 'method', Client::AUTH_HTTP_TOKEN),
+            array_get($config, 'method', GitLabClientExtension::AUTH_HTTP_TOKEN),
             array_get($config, 'sudo', null)
         );
 
