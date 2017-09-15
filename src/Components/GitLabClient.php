@@ -27,7 +27,7 @@ class GitLabClient implements ClientInterface
     {
         $this->validateConfig($config);
         /** @var \DreamFactory\Core\Git\Components\GitLabClientExtension $this ->client */
-        $this->client = new GitLabClientExtension($config['base_url']);
+        $this->client = new GitLabClientExtension(rtrim($config['base_url'], '/') . '/');
 
         $this->client->authenticate(
             $config['token'],
