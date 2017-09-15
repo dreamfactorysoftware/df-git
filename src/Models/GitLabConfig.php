@@ -42,6 +42,7 @@ class GitLabConfig extends BaseServiceConfigModel
             case 'token':
                 $schema['label'] = 'GitLab Token';
                 $schema['description'] = 'Your GitLab access token goes here.';
+                $schema['required'] = true;
                 break;
         }
     }
