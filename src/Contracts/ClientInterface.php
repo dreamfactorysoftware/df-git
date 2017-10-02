@@ -9,7 +9,7 @@ interface ClientInterface
      *
      * @return array
      */
-    public function repoAll();
+    public function repoAll($page = 1, $perPage = 50);
 
     /**
      * Lists contents of a repository.

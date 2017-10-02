@@ -13,6 +13,7 @@ class GitLabConfig extends BaseServiceConfigModel
     protected $fillable = [
         'service_id',
         'base_url',
+        'namespace',
         'token',
     ];
 
@@ -38,6 +39,12 @@ class GitLabConfig extends BaseServiceConfigModel
             case 'base_url':
                 $schema['label'] = 'Base URL';
                 $schema['description'] = 'Your GitLab base url goes here. Example: https://gitlab.com/api/v3/';
+                break;
+            case 'namespace':
+                $schema['label'] = 'Namespace/Group';
+                $schema['description'] = 'Enter your GitLab namespace/group name here. ' .
+                    'If this is left blank then your username will be used as namespace. ' .
+                    'You will only see projects that are under your namespace.';
                 break;
             case 'token':
                 $schema['label'] = 'GitLab Token';
