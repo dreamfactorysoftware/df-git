@@ -2,7 +2,6 @@
 
 namespace DreamFactory\Core\Git\Components;
 
-use Cache;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use Gitlab\Exception\RuntimeException;
@@ -16,12 +15,14 @@ class GitLabClient implements ClientInterface
     protected $projectList = [];
 
     /** @var string */
-    protected $cacheKeyPrefix;
+    protected $namespace;
 
     /**
      * GitLabClient constructor.
      *
      * @param $config
+     *
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
      */
     public function __construct($config)
     {
@@ -35,7 +36,15 @@ class GitLabClient implements ClientInterface
             array_get($config, 'sudo', null)
         );
 
-        $this->cacheKeyPrefix = md5($config['token']);
+        $namespace = array_get($config, 'namespace');
+        if (empty($namespace)) {
+            $userInfo = $this->client->users->me();
+            if (empty($userInfo) || !isset($userInfo['username'])) {
+                throw new InternalServerErrorException('No authenticated user found for GitLab client. Please check GitLab service configuration.');
+            }
+            $namespace = $userInfo['username'];
+        }
+        $this->namespace = $namespace;
     }
 
     /**
@@ -46,7 +55,7 @@ class GitLabClient implements ClientInterface
     protected function validateConfig($config)
     {
         if (empty(array_get($config, 'base_url'))) {
-            throw new InternalServerErrorException('No base url provided for GitLab Client.');
+            throw new InternalServerErrorException('No base url provided for GitLab client.');
         }
         if (empty(array_get($config, 'token'))) {
             throw new InternalServerErrorException('No token provided for GitLab client.');
@@ -54,13 +63,20 @@ class GitLabClient implements ClientInterface
     }
 
     /**
-     * @return mixed
+     * @param int $page
+     * @param int $perPage
+     *
+     * @return array
      */
-    protected function getProjectList()
+    protected function getProjectList($page = 1, $perPage= 100)
     {
-        $list = Cache::remember($this->cacheKeyPrefix . ':ALL', config('df.default_cache_ttl'), function (){
-            return $this->client->projects->owned();
-        });
+        $listRaw = $this->client->projects->accessible($page, $perPage);
+        $list = [];
+        foreach ($listRaw as $item) {
+            if (array_get($item, 'namespace.name') === $this->namespace) {
+                $list[] = $item;
+            }
+        }
 
         return $list;
     }
@@ -72,15 +88,13 @@ class GitLabClient implements ClientInterface
      */
     protected function getProjectId($name)
     {
-        $list = $this->getProjectList();
-
-        return array_by_key_value($list, 'name', $name, 'id');
+        return $this->namespace . '/' . $name;
     }
 
     /** {@inheritdoc} */
-    public function repoAll()
+    public function repoAll($page = 1, $perPage = 50)
     {
-        return $this->getProjectList();
+        return $this->getProjectList($page, $perPage);
     }
 
     /** {@inheritdoc} */
