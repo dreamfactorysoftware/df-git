@@ -2,9 +2,9 @@
 
 namespace DreamFactory\Core\Git\Services;
 
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Core\Utility\Session;
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
 
 abstract class BaseService extends BaseRestService
 {
@@ -39,11 +39,4 @@ abstract class BaseService extends BaseRestService
     {
         return $this->client;
     }
-
-    /** @inheritdoc */
-    public function getResources($only_handlers = false)
-    {
-        return ($only_handlers) ? static::$resources : array_values(static::$resources);
-    }
-
 }

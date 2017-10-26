@@ -83,138 +83,128 @@ class BaseResource extends BaseRestResource
     }
 
     /** {@inheritdoc} */
-    public static function getApiDocInfo($service, array $resource = [])
+    protected function getApiDocPaths()
     {
-        $base = parent::getApiDocInfo($service, $resource);
-        $serviceName = strtolower($service);
-        $class = trim(strrchr(static::class, '\\'), '\\');
-        $resourceName = strtolower(array_get($resource, 'name', $class));
-        $path = '/' . $serviceName . '/' . $resourceName;
-        $base['paths'][$path]['get'] = [
-            'tags'        => [$serviceName],
+        $base = parent::getApiDocPaths();
+        $resourceName = strtolower($this->name);
+        $path = '/' . $resourceName;
+        $base[$path]['get'] = [
             'summary'     => 'getRepositoryList() - Get Repository List',
             'operationId' => 'getRepositoryList',
-            'consumes'    => ['application/json', 'application/xml'],
-            'produces'    => ['application/json', 'application/xml'],
             'description' => 'Fetches a list of repositories',
             'parameters'  => [
                 ApiOptions::documentOption(ApiOptions::AS_LIST),
             ],
             'responses'   => [
-                '200'     => [
+                '200' => [
                     'description' => 'Success',
-                    'schema'      => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'resource' => [
-                                'type'  => 'array',
-                                'items' => [
-                                    [
-                                        'type'       => 'object',
-                                        'properties' => [
-                                            'id'          => ['type' => 'integer'],
-                                            'name'        => ['type' => 'string'],
-                                            'description' => ['type' => 'string'],
+                    'content'     => [
+                        'application/json' => [
+                            'schema' => [
+                                'type'       => 'object',
+                                'properties' => [
+                                    'resource' => [
+                                        'type'  => 'array',
+                                        'items' => [
+                                            [
+                                                'type'       => 'object',
+                                                'properties' => [
+                                                    'id'          => ['type' => 'integer'],
+                                                    'name'        => ['type' => 'string'],
+                                                    'description' => ['type' => 'string'],
+                                                ]
+                                            ]
                                         ]
-                                    ]
+                                    ],
                                 ]
-                            ],
+                            ]
                         ]
                     ]
                 ],
-                'default' => [
-                    'description' => 'Error',
-                    'schema'      => ['$ref' => '#/definitions/Error']
-                ]
             ],
         ];
 
-        $base['paths'][$path . '/{repo_name}']['get'] = [
-            'tags'        => [$serviceName],
+        $base[$path . '/{repo_name}']['get'] = [
             'summary'     => 'getRepository() - Get Repository Files',
             'operationId' => 'getRepository',
-            'consumes'    => ['application/json', 'application/xml'],
-            'produces'    => ['application/json', 'application/xml'],
             'description' => 'Fetches a repository files',
             'parameters'  => [
                 [
                     'name'        => 'repo_name',
                     'in'          => 'path',
-                    'type'        => 'string',
+                    'schema'      => ['type' => 'string'],
                     'description' => 'Repo name',
                     'required'    => true,
                 ],
                 [
                     'name'        => 'path',
                     'in'          => 'query',
-                    'type'        => 'string',
+                    'schema'      => ['type' => 'string'],
                     'description' => 'A file/folder path'
                 ],
                 [
                     'name'        => 'content',
                     'in'          => 'query',
-                    'type'        => 'boolean',
+                    'schema'      => ['type' => 'boolean'],
                     'description' => 'Set true to get file content'
                 ],
                 ApiOptions::documentOption(ApiOptions::AS_LIST),
             ],
             'responses'   => [
-                '200'     => [
+                '200' => [
                     'description' => 'Success',
-                    'schema'      => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'resource' => [
-                                'type'  => 'array',
-                                'items' => [static::getResourceDefinition()]
-                            ],
+                    'content'     => [
+                        'application/json' => [
+                            'schema' => [
+                                'type'       => 'object',
+                                'properties' => [
+                                    'resource' => [
+                                        'type'  => 'array',
+                                        'items' => [static::getResourceDefinition()]
+                                    ],
+                                ]
+                            ]
                         ]
                     ]
                 ],
-                'default' => [
-                    'description' => 'Error',
-                    'schema'      => ['$ref' => '#/definitions/Error']
-                ]
             ],
         ];
 
-        $base['paths'][$path . '/{repo_name}/{path}']['get'] = [
-            'tags'        => [$serviceName],
+        $base[$path . '/{repo_name}/{path}']['get'] = [
             'summary'     => 'getRepository() - Get Repository Files',
             'operationId' => 'getRepository',
-            'consumes'    => ['application/json', 'application/xml'],
-            'produces'    => ['application/json', 'application/xml'],
             'description' => 'Fetches a repository files',
             'parameters'  => [
                 [
                     'name'        => 'repo_name',
                     'in'          => 'path',
-                    'type'        => 'string',
+                    'schema'      => ['type' => 'string'],
                     'description' => 'Repo name',
                     'required'    => true,
                 ],
                 [
                     'name'        => 'path',
                     'in'          => 'path',
-                    'type'        => 'string',
+                    'schema'      => ['type' => 'string'],
                     'description' => 'A file/folder path',
+                    'required'    => true,
                 ],
                 [
                     'name'        => 'content',
                     'in'          => 'query',
-                    'type'        => 'boolean',
+                    'schema'      => ['type' => 'boolean'],
                     'description' => 'Set true to get file content',
                 ],
             ],
             'responses'   => [
-                '200'     => [
+                '200' => [
                     'description' => 'Success',
-                    'schema'      => static::getResourceDefinition(),
+                    'content'     => [
+                        'application/json' => [
+                            'schema' => static::getResourceDefinition(),
+                        ]
+                    ]
                 ],
-                'default' => [
-                    'description' => 'Error',
-                    'schema'      => ['$ref' => '#/definitions/Error']
-                ]
             ],
         ];
 
