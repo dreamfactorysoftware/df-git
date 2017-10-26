@@ -32,11 +32,11 @@ class GitHubClient implements ClientInterface
 
         if (!empty($username) && !empty($token)) {
             $auth = new TokenAuthenticator();
-        } elseif(!empty($username) && !empty($password)) {
+        } elseif (!empty($username) && !empty($password)) {
             $auth = new PasswordAuthenticator();
         }
 
-        if(empty($auth)) {
+        if (empty($auth)) {
             $this->client = new Client();
         } else {
             $this->client = $auth->with(new Client())->authenticate($config);
@@ -56,11 +56,12 @@ class GitHubClient implements ClientInterface
     }
 
     /** {@inheritdoc} */
-    public function repoAll($limit = 100)
+    public function repoAll($page = 1, $perPage = 50)
     {
         $gitUser = new GitHubUser($this->client);
 
-        return $gitUser->repositories($this->username, 'owner', 'full_name', 'asc', ['per_page' => $limit]);
+        return $gitUser->repositories($this->username, 'all', 'full_name', 'asc',
+            ['page' => $page, 'per_page' => $perPage]);
     }
 
     /** {@inheritdoc} */

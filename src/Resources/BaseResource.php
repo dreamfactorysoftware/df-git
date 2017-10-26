@@ -45,15 +45,17 @@ class BaseResource extends BaseRestResource
     {
         $branch = $this->request->getParameter('branch', $this->request->getParameter('tag', 'master'));
         $getContent = $this->request->getParameterAsBool('content');
-        $asList = $this->request->getParameter(ApiOptions::AS_LIST);
+        $asList = $this->request->getParameterAsBool(ApiOptions::AS_LIST);
         $fields = $this->request->getParameter(ApiOptions::FIELDS, '*');
+        $page = $this->request->getParameter('page', 1);
+        $perPage = $this->request->getParameter('per_page', 50);
 
         $resourceArray = $this->resourceArray;
         $repo = array_get($resourceArray, 0);
 
         try {
             if (empty($repo)) {
-                $content = $this->parent->getClient()->repoAll();
+                $content = $this->parent->getClient()->repoAll($page, $perPage);
             } else {
                 array_shift($resourceArray);
                 $path = implode('/', $resourceArray);
@@ -94,6 +96,18 @@ class BaseResource extends BaseRestResource
             'description' => 'Fetches a list of repositories',
             'parameters'  => [
                 ApiOptions::documentOption(ApiOptions::AS_LIST),
+                [
+                    'name'        => 'page',
+                    'in'          => 'query',
+                    'type'        => 'integer',
+                    'description' => 'Page number to fetch. Default is 1.'
+                ],
+                [
+                    'name'        => 'per_page',
+                    'in'          => 'query',
+                    'type'        => 'integer',
+                    'description' => 'Number of entries per page. Default is 50.'
+                ]
             ],
             'responses'   => [
                 '200' => [
