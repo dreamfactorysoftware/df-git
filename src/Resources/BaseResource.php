@@ -81,9 +81,9 @@ class BaseResource extends BaseRestResource
         $paths = [
             $path                         => [
                 'get' => [
-                    'summary'     => 'get' . $capitalized . 'RepositoryList() - Get Repository List',
-                    'operationId' => 'get' . $capitalized . 'RepositoryList',
+                    'summary'     => 'Get Repository List',
                     'description' => 'Fetches a list of repositories',
+                    'operationId' => 'get' . $capitalized . 'RepositoryList',
                     'parameters'  => [
                         ApiOptions::documentOption(ApiOptions::AS_LIST),
                         [
@@ -106,9 +106,9 @@ class BaseResource extends BaseRestResource
             ],
             $path . '/{repo_name}'        => [
                 'get' => [
-                    'summary'     => 'get' . $capitalized . 'Repository() - Get Repository Files',
-                    'operationId' => 'get' . $capitalized . 'Repository',
+                    'summary'     => 'Get Repository Files',
                     'description' => 'Fetches a repository files',
+                    'operationId' => 'get' . $capitalized . 'Repository',
                     'parameters'  => [
                         [
                             'name'        => 'repo_name',
@@ -138,9 +138,9 @@ class BaseResource extends BaseRestResource
             ],
             $path . '/{repo_name}/{path}' => [
                 'get' => [
-                    'summary'     => 'get' . $capitalized . 'RepositoryPath() - Get Repository Files',
-                    'operationId' => 'get' . $capitalized . 'RepositoryPath',
+                    'summary'     => 'Get Repository Files',
                     'description' => 'Fetches a repository files',
+                    'operationId' => 'get' . $capitalized . 'RepositoryPath',
                     'parameters'  => [
                         [
                             'name'        => 'repo_name',
