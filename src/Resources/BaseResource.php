@@ -25,20 +25,6 @@ class BaseResource extends BaseRestResource
     }
 
     /**
-     * @return array
-     */
-    protected static function getResourceDefinition()
-    {
-        return [
-            'type'       => 'object',
-            'properties' => [
-                'name' => ['type' => 'string'],
-                'path' => ['type' => 'string'],
-            ]
-        ];
-    }
-
-    /**
      * {@inheritdoc}
      */
     protected function handleGET()
@@ -85,153 +71,185 @@ class BaseResource extends BaseRestResource
     }
 
     /** {@inheritdoc} */
-    public static function getApiDocInfo($service, array $resource = [])
+    protected function getApiDocPaths()
     {
-        $base = parent::getApiDocInfo($service, $resource);
-        $serviceName = strtolower($service);
-        $class = trim(strrchr(static::class, '\\'), '\\');
-        $resourceName = strtolower(array_get($resource, 'name', $class));
-        $path = '/' . $serviceName . '/' . $resourceName;
-        $base['paths'][$path]['get'] = [
-            'tags'        => [$serviceName],
-            'summary'     => 'getRepositoryList() - Get Repository List',
-            'operationId' => 'getRepositoryList',
-            'consumes'    => ['application/json', 'application/xml'],
-            'produces'    => ['application/json', 'application/xml'],
-            'description' => 'Fetches a list of repositories',
-            'parameters'  => [
-                ApiOptions::documentOption(ApiOptions::AS_LIST),
-                [
-                    'name'        => 'page',
-                    'in'          => 'query',
-                    'type'        => 'integer',
-                    'description' => 'Page number to fetch. Default is 1.'
+        $service = $this->getServiceName();
+        $capitalized = camelize($service);
+        $resourceName = strtolower($this->name);
+        $path = '/' . $resourceName;
+
+        $paths = [
+            $path                         => [
+                'get' => [
+                    'summary'     => 'Get Repository List',
+                    'description' => 'Fetches a list of repositories',
+                    'operationId' => 'get' . $capitalized . 'RepositoryList',
+                    'parameters'  => [
+                        ApiOptions::documentOption(ApiOptions::AS_LIST),
+                        [
+                            'name'        => 'page',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'integer'],
+                            'description' => 'Page number to fetch. Default is 1.'
+                        ],
+                        [
+                            'name'        => 'per_page',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'integer'],
+                            'description' => 'Number of entries per page. Default is 50.'
+                        ]
+                    ],
+                    'responses'   => [
+                        '200' => ['$ref' => '#/components/responses/GitReposResponse']
+                    ],
                 ],
-                [
-                    'name'        => 'per_page',
-                    'in'          => 'query',
-                    'type'        => 'integer',
-                    'description' => 'Number of entries per page. Default is 50.'
-                ]
             ],
-            'responses'   => [
-                '200'     => [
-                    'description' => 'Success',
-                    'schema'      => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'resource' => [
-                                'type'  => 'array',
-                                'items' => [
-                                    [
-                                        'type'       => 'object',
-                                        'properties' => [
-                                            'id'          => ['type' => 'integer'],
-                                            'name'        => ['type' => 'string'],
-                                            'description' => ['type' => 'string'],
-                                        ]
-                                    ]
-                                ]
-                            ],
+            $path . '/{repo_name}'        => [
+                'get' => [
+                    'summary'     => 'Get Repository Files',
+                    'description' => 'Fetches a repository files',
+                    'operationId' => 'get' . $capitalized . 'Repository',
+                    'parameters'  => [
+                        [
+                            'name'        => 'repo_name',
+                            'in'          => 'path',
+                            'schema'      => ['type' => 'string'],
+                            'description' => 'Repo name',
+                            'required'    => true,
+                        ],
+                        [
+                            'name'        => 'path',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'string'],
+                            'description' => 'A file/folder path'
+                        ],
+                        [
+                            'name'        => 'content',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'boolean'],
+                            'description' => 'Set true to get file content'
+                        ],
+                        ApiOptions::documentOption(ApiOptions::AS_LIST),
+                    ],
+                    'responses'   => [
+                        '200' => ['$ref' => '#/components/responses/GitRepoFilesResponse'],
+                    ],
+                ],
+            ],
+            $path . '/{repo_name}/{path}' => [
+                'get' => [
+                    'summary'     => 'Get Repository Files',
+                    'description' => 'Fetches a repository files',
+                    'operationId' => 'get' . $capitalized . 'RepositoryPath',
+                    'parameters'  => [
+                        [
+                            'name'        => 'repo_name',
+                            'in'          => 'path',
+                            'schema'      => ['type' => 'string'],
+                            'description' => 'Repo name',
+                            'required'    => true,
+                        ],
+                        [
+                            'name'        => 'path',
+                            'in'          => 'path',
+                            'schema'      => ['type' => 'string'],
+                            'description' => 'A file/folder path',
+                            'required'    => true,
+                        ],
+                        [
+                            'name'        => 'content',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'boolean'],
+                            'description' => 'Set true to get file content',
+                        ],
+                    ],
+                    'responses'   => [
+                        '200' => ['$ref' => '#/components/responses/GitRepoFileResponse'],
+                    ],
+                ],
+            ],
+        ];
+
+        return $paths;
+    }
+
+    protected function getApiDocResponses()
+    {
+        return [
+            'GitReposResponse'     => [
+                'description' => 'Success',
+                'content'     => [
+                    'application/json' => [
+                        'schema' => [
+                            '$ref' => '#/components/schemas/GitRepos'
                         ]
                     ]
-                ],
-                'default' => [
-                    'description' => 'Error',
-                    'schema'      => ['$ref' => '#/definitions/Error']
                 ]
             ],
-        ];
-
-        $base['paths'][$path . '/{repo_name}']['get'] = [
-            'tags'        => [$serviceName],
-            'summary'     => 'getRepository() - Get Repository Files',
-            'operationId' => 'getRepository',
-            'consumes'    => ['application/json', 'application/xml'],
-            'produces'    => ['application/json', 'application/xml'],
-            'description' => 'Fetches a repository files',
-            'parameters'  => [
-                [
-                    'name'        => 'repo_name',
-                    'in'          => 'path',
-                    'type'        => 'string',
-                    'description' => 'Repo name',
-                    'required'    => true,
-                ],
-                [
-                    'name'        => 'path',
-                    'in'          => 'query',
-                    'type'        => 'string',
-                    'description' => 'A file/folder path'
-                ],
-                [
-                    'name'        => 'content',
-                    'in'          => 'query',
-                    'type'        => 'boolean',
-                    'description' => 'Set true to get file content'
-                ],
-                ApiOptions::documentOption(ApiOptions::AS_LIST),
-            ],
-            'responses'   => [
-                '200'     => [
-                    'description' => 'Success',
-                    'schema'      => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'resource' => [
-                                'type'  => 'array',
-                                'items' => [static::getResourceDefinition()]
-                            ],
+            'GitRepoFilesResponse' => [
+                'description' => 'Success',
+                'content'     => [
+                    'application/json' => [
+                        'schema' => [
+                            '$ref' => '#/components/schemas/GitRepoFiles'
                         ]
                     ]
-                ],
-                'default' => [
-                    'description' => 'Error',
-                    'schema'      => ['$ref' => '#/definitions/Error']
+                ]
+            ],
+            'GitRepoFileResponse'  => [
+                'description' => 'Success',
+                'content'     => [
+                    'application/json' => [
+                        'schema' => [
+                            '$ref' => '#/components/schemas/GitRepoFile'
+                        ]
+                    ]
                 ]
             ],
         ];
+    }
 
-        $base['paths'][$path . '/{repo_name}/{path}']['get'] = [
-            'tags'        => [$serviceName],
-            'summary'     => 'getRepository() - Get Repository Files',
-            'operationId' => 'getRepository',
-            'consumes'    => ['application/json', 'application/xml'],
-            'produces'    => ['application/json', 'application/xml'],
-            'description' => 'Fetches a repository files',
-            'parameters'  => [
-                [
-                    'name'        => 'repo_name',
-                    'in'          => 'path',
-                    'type'        => 'string',
-                    'description' => 'Repo name',
-                    'required'    => true,
-                ],
-                [
-                    'name'        => 'path',
-                    'in'          => 'path',
-                    'type'        => 'string',
-                    'description' => 'A file/folder path',
-                ],
-                [
-                    'name'        => 'content',
-                    'in'          => 'query',
-                    'type'        => 'boolean',
-                    'description' => 'Set true to get file content',
-                ],
-            ],
-            'responses'   => [
-                '200'     => [
-                    'description' => 'Success',
-                    'schema'      => static::getResourceDefinition(),
-                ],
-                'default' => [
-                    'description' => 'Error',
-                    'schema'      => ['$ref' => '#/definitions/Error']
+    /**
+     * @return array
+     */
+    protected function getApiDocSchemas()
+    {
+        return [
+            'GitRepos'     => [
+                'type'       => 'object',
+                'properties' => [
+                    'resource' => [
+                        'type'  => 'array',
+                        'items' => [
+                            '$ref' => '#/components/schemas/GitRepo'
+                        ]
+                    ]
                 ]
             ],
+            'GitRepo'      => [
+                'type'       => 'object',
+                'properties' => [
+                    'id'          => ['type' => 'integer'],
+                    'name'        => ['type' => 'string'],
+                    'description' => ['type' => 'string'],
+                ]
+            ],
+            'GitRepoFiles' => [
+                'type'       => 'object',
+                'properties' => [
+                    'resource' => [
+                        'type'  => 'array',
+                        'items' => ['$ref' => '#/components/schemas/GitRepoFile']
+                    ],
+                ],
+            ],
+            'GitRepoFile'  => [
+                'type'       => 'object',
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                    'path' => ['type' => 'string'],
+                ],
+            ],
         ];
-
-        return $base;
     }
 }
