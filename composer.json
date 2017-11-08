@@ -45,6 +45,11 @@
   "extra":       {
     "branch-alias": {
       "dev-develop": "0.2.x-dev"
+    },
+    "laravel": {
+      "providers": [
+        "DreamFactory\\Core\\Git\\ServiceProvider"
+      ]
     }
   }
 }
