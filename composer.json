@@ -26,15 +26,15 @@
     }
   ],
   "support":     {
-    "email":  "support@dreamfactory.com",
+    "email":  "dspsupport@dreamfactory.com",
     "source": "https://github.com/dreamfactorysoftware/df-git",
     "issues": "https://github.com/dreamfactorysoftware/df-git/issues",
     "wiki":   "https://wiki.dreamfactory.com"
   },
   "require":     {
-    "dreamfactory/df-core": "~0.13.0",
-    "graham-campbell/github": "^5.0",
-    "vinkla/gitlab": "^2.6.0",
+    "dreamfactory/df-core": "~0.14.0",
+    "graham-campbell/github": "^6.0",
+    "vinkla/gitlab": "^3.0.0",
     "php-http/guzzle6-adapter": "^1.1"
   },
   "autoload":    {
@@ -44,7 +44,12 @@
   },
   "extra":       {
     "branch-alias": {
-      "dev-develop": "0.2.x-dev"
+      "dev-develop": "0.3.x-dev"
+    },
+    "laravel": {
+      "providers": [
+        "DreamFactory\\Core\\Git\\ServiceProvider"
+      ]
     }
   }
 }
