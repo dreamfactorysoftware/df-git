@@ -4,10 +4,11 @@ namespace DreamFactory\Core\Git\Resources;
 
 class GitHubRepo extends BaseResource
 {
+    /** Resource name */
     const RESOURCE_NAME = '_repo';
 
     /** {@inheritdoc} */
-    public static function getResourceDefinition()
+    protected static function getResourceDefinition()
     {
         return [
             'type'       => 'object',

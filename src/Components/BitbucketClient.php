@@ -4,7 +4,6 @@ namespace DreamFactory\Core\Git\Components;
 
 use Bitbucket\API\Http\Response\Pager;
 use Buzz\Message\Response;
-use DreamFactory\Core\Enums\HttpStatusCodes;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Git\Contracts\ClientInterface as GitClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
@@ -17,12 +16,19 @@ use Bitbucket\API\Http\Listener\NormalizeArrayListener;
 
 class BitbucketClient implements GitClientInterface
 {
-    /** @var \Bitbucket\API\Api  */
+    /** @var \Bitbucket\API\Api */
     protected $client;
 
     /** @var String */
     protected $username;
 
+    /**
+     * BitbucketClient constructor.
+     *
+     * @param $config
+     *
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
+     */
     public function __construct($config)
     {
         $this->validateConfig($config);
@@ -93,7 +99,7 @@ class BitbucketClient implements GitClientInterface
         $repo = $this->client->api('Repositories');
         $pager = new Pager($repo->getClient(), $repo->all($this->username));
         /** @var \Buzz\Message\Response $response */
-        $response =  $this->checkResponse($pager->fetchAll());
+        $response = $this->checkResponse($pager->fetchAll());
 
         return json_decode($response->getContent(), true)['values'];
     }
@@ -159,7 +165,7 @@ class BitbucketClient implements GitClientInterface
     {
         $statusCode = $response->getStatusCode();
 
-        if($statusCode >= 300) {
+        if ($statusCode >= 300) {
             throw new RestException($statusCode, $response->getContent());
         }
 
@@ -204,11 +210,12 @@ class BitbucketClient implements GitClientInterface
      */
     protected function cleanSrcData($data)
     {
-        if(isset($data['data'])) {
+        if (isset($data['data'])) {
             $content = base64_encode($data['data']);
             $size = array_get($data, 'size');
             unset($data['size']);
-            $data['data'] = $content;
+            unset($data['data']); // Keeping response consistent with other SCM services using key 'content' instead of 'data'
+            $data['content'] = $content;
             $data['encoding'] = 'base64';
             $data['size'] = $size;
 

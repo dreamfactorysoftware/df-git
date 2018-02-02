@@ -4,6 +4,7 @@ namespace DreamFactory\Core\Git\Resources;
 
 class GitLabRepo extends BaseResource
 {
+    /** Resource name */
     const RESOURCE_NAME = '_repo';
 
     /** {@inheritdoc} */
