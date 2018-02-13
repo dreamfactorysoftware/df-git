@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- DF-1286 - Added support for bitbucket service
+
 ## [0.3.0] - 2017-12-28
 - Added package discovery
 - Updated dependencies
