@@ -106,8 +106,8 @@ class BaseResource extends BaseRestResource
             ],
             $path . '/{repo_name}'        => [
                 'get' => [
-                    'summary'     => 'Get Repository Files',
-                    'description' => 'Fetches a repository files',
+                    'summary'     => 'Get Repository Files and Directories',
+                    'description' => 'Fetches a repository files and directories',
                     'operationId' => 'get' . $capitalized . 'Repository',
                     'parameters'  => [
                         [
@@ -123,12 +123,6 @@ class BaseResource extends BaseRestResource
                             'schema'      => ['type' => 'string'],
                             'description' => 'A file/folder path'
                         ],
-                        [
-                            'name'        => 'content',
-                            'in'          => 'query',
-                            'schema'      => ['type' => 'boolean'],
-                            'description' => 'Set true to get file content'
-                        ],
                         ApiOptions::documentOption(ApiOptions::AS_LIST),
                     ],
                     'responses'   => [
@@ -138,9 +132,9 @@ class BaseResource extends BaseRestResource
             ],
             $path . '/{repo_name}/{path}' => [
                 'get' => [
-                    'summary'     => 'Get Repository Files',
-                    'description' => 'Fetches a repository files',
-                    'operationId' => 'get' . $capitalized . 'RepositoryPath',
+                    'summary'     => 'Get Repository File',
+                    'description' => 'Fetches a repository file',
+                    'operationId' => 'get' . $capitalized . 'RepositoryFile',
                     'parameters'  => [
                         [
                             'name'        => 'repo_name',
@@ -173,6 +167,7 @@ class BaseResource extends BaseRestResource
         return $paths;
     }
 
+    /** {@inheritdoc} */
     protected function getApiDocResponses()
     {
         return [
@@ -201,7 +196,7 @@ class BaseResource extends BaseRestResource
                 'content'     => [
                     'application/json' => [
                         'schema' => [
-                            '$ref' => '#/components/schemas/GitRepoFile'
+                            '$ref' => '#/components/schemas/GitRepoFileDetails'
                         ]
                     ]
                 ]
@@ -209,13 +204,11 @@ class BaseResource extends BaseRestResource
         ];
     }
 
-    /**
-     * @return array
-     */
+    /** {@inheritdoc} */
     protected function getApiDocSchemas()
     {
         return [
-            'GitRepos'     => [
+            'GitRepos'           => [
                 'type'       => 'object',
                 'properties' => [
                     'resource' => [
@@ -226,15 +219,8 @@ class BaseResource extends BaseRestResource
                     ]
                 ]
             ],
-            'GitRepo'      => [
-                'type'       => 'object',
-                'properties' => [
-                    'id'          => ['type' => 'integer'],
-                    'name'        => ['type' => 'string'],
-                    'description' => ['type' => 'string'],
-                ]
-            ],
-            'GitRepoFiles' => [
+            'GitRepo'            => static::getGitRepoDefinition(),
+            'GitRepoFiles'       => [
                 'type'       => 'object',
                 'properties' => [
                     'resource' => [
@@ -243,12 +229,46 @@ class BaseResource extends BaseRestResource
                     ],
                 ],
             ],
-            'GitRepoFile'  => [
+            'GitRepoFile'        => [
                 'type'       => 'object',
                 'properties' => [
                     'name' => ['type' => 'string'],
                     'path' => ['type' => 'string'],
+                    'type' => ['type' => 'string']
                 ],
+            ],
+            'GitRepoFileDetails' => static::getResourceDefinition(),
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    protected static function getGitRepoDefinition()
+    {
+        return [
+            'type'       => 'object',
+            'properties' => [
+                'id'          => ['type' => 'integer'],
+                'name'        => ['type' => 'string'],
+                'description' => ['type' => 'string'],
+            ]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    protected static function getResourceDefinition()
+    {
+        return [
+            'type'       => 'object',
+            'properties' => [
+                'name'     => ['type' => 'string'],
+                'path'     => ['type' => 'string'],
+                'type'     => ['type' => 'string'],
+                'content'  => ['type' => 'string'],
+                'encoding' => ['type' => 'string']
             ],
         ];
     }

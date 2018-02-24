@@ -19,7 +19,9 @@ class GitHubClient implements ClientInterface
     /**
      * GitHubClient constructor.
      *
-     * @param array $config
+     * @param $config
+     *
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
      */
     public function __construct($config)
     {

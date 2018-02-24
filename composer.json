@@ -35,6 +35,7 @@
     "dreamfactory/df-core": "~0.14.0",
     "graham-campbell/github": "^6.0",
     "vinkla/gitlab": "^3.0.0",
+    "graham-campbell/bitbucket": "^2.1",
     "php-http/guzzle6-adapter": "^1.1"
   },
   "autoload":    {
