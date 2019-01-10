@@ -62,7 +62,7 @@ class GitHubClient implements ClientInterface
     {
         $gitUser = new GitHubUser($this->client);
 
-        return $gitUser->repositories($this->username, 'all', 'full_name', 'asc',
+        return $gitUser->repositories($this->username, 'all', 'full_name', 'asc', 'all', 'owner,collaborator,organization_member',
             ['page' => $page, 'per_page' => $perPage]);
     }
 
