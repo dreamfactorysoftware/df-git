@@ -6,7 +6,7 @@ use Buzz\Client\ClientInterface;
 use Gitlab\HttpClient\HttpClient;
 use Gitlab\HttpClient\Listener\ErrorListener;
 
-class GitLabHttpClientExtension extends HttpClient
+class _GitLabHttpClientExtension extends HttpClient
 {
     public function __construct($baseUrl, array $options, ClientInterface $client)
     {

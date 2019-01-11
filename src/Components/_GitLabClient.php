@@ -6,7 +6,7 @@ use DreamFactory\Core\Git\Contracts\ClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use Gitlab\Exception\RuntimeException;
 
-class GitLabClient implements ClientInterface
+class _GitLabClient implements ClientInterface
 {
     /** @var \DreamFactory\Core\Git\Components\GitLabClientExtension */
     protected $client;
