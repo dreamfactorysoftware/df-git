@@ -2,6 +2,7 @@
 
 namespace DreamFactory\Core\Git\Services;
 
+use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Git\Components\BitbucketClient;
 use DreamFactory\Core\Git\Resources\BitbucketRepo;
 

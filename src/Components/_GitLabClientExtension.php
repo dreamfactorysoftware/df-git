@@ -7,7 +7,7 @@ use Gitlab\Client;
 use Buzz\Client\Curl;
 use Gitlab\HttpClient\Listener\PaginationListener;
 
-class GitLabClientExtension extends Client
+class _GitLabClientExtension extends Client
 {
     /**
      * @var array

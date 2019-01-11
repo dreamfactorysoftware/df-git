@@ -7,12 +7,14 @@ use Buzz\Message\Response;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Git\Contracts\ClientInterface as GitClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use GrahamCampbell\Bitbucket\Authenticators\BasicAuthenticator;
-use GrahamCampbell\Bitbucket\Authenticators\TokenAuthenticator;
-use Bitbucket\API\Api;
-use Bitbucket\API\Http\Client;
-use Bitbucket\API\Http\ClientInterface;
-use Bitbucket\API\Http\Listener\NormalizeArrayListener;
+use GrahamCampbell\Bitbucket\Authenticators\PasswordAuthenticator;
+use GrahamCampbell\Bitbucket\Authenticators\OauthAuthenticator;
+use Bitbucket\Client;
+use Bitbucket\HttpClient\Builder;
+//use Bitbucket\API\Api;
+//use Bitbucket\API\Http\Client;
+//use Bitbucket\API\Http\ClientInterface;
+//use Bitbucket\API\Http\Listener\NormalizeArrayListener;
 
 class BitbucketClient implements GitClientInterface
 {
@@ -39,14 +41,17 @@ class BitbucketClient implements GitClientInterface
         $auth = null;
 
         if (!empty($username) && !empty($token)) {
-            $auth = new TokenAuthenticator();
+            $auth = new OauthAuthenticator();
         } elseif (!empty($username) && !empty($password)) {
-            $auth = new BasicAuthenticator();
+            $auth = new PasswordAuthenticator();
         }
 
-        $httpClient = $this->getHttpClient();
-        $client = new Api();
-        $client->setClient($httpClient);
+        $client = new Client(new Builder());
+        $client->setUrl('https://api.bitbucket.org');
+
+        //$httpClient = $this->getHttpClient();
+        //$client = new Api();
+        //$client->setClient($httpClient);
 
         if (empty($auth)) {
             $this->client = $client;
@@ -60,6 +65,7 @@ class BitbucketClient implements GitClientInterface
      *
      * @return ClientInterface
      */
+    /*
     protected function getHttpClient()
     {
         $options = [
@@ -74,6 +80,7 @@ class BitbucketClient implements GitClientInterface
 
         return $client;
     }
+    */
 
     /**
      * @param $config

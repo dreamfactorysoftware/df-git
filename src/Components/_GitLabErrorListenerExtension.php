@@ -8,7 +8,7 @@ use Buzz\Message\RequestInterface;
 use Gitlab\Exception\ErrorException;
 use Gitlab\Exception\RuntimeException;
 
-class GitLabErrorListenerExtension extends ErrorListener
+class _GitLabErrorListenerExtension extends ErrorListener
 {
     /**
      * {@inheritDoc}

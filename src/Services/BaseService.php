@@ -3,6 +3,7 @@
 namespace DreamFactory\Core\Git\Services;
 
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
+use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Core\Utility\Session;
 
@@ -15,14 +16,19 @@ abstract class BaseService extends BaseRestService
     {
         parent::__construct($settings);
 
-        $config = array_get($settings, 'config');
-        Session::replaceLookups($config, true);
+        try {
 
-        if (empty($config)) {
-            throw new InternalServerErrorException('No service configuration found for mqtt service.');
+            $config = array_get($settings, 'config');
+            Session::replaceLookups($config, true);
+
+            if (empty($config)) {
+                throw new InternalServerErrorException('No service configuration found for mqtt service.');
+            }
+
+            $this->setClient($config);
+        } catch (\Exception $e) {
+            throw new RestException(400, 'IHORO ERR2');
         }
-
-        $this->setClient($config);
     }
 
     /**

@@ -30,6 +30,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     },
                 ])
             );
+            /*
             $df->addType(
                 new ServiceType([
                     'name'            => 'gitlab',
@@ -42,6 +43,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     },
                 ])
             );
+            */
             $df->addType(
                 new ServiceType([
                     'name'            => 'bitbucket',
