@@ -2,17 +2,13 @@
 
 namespace DreamFactory\Core\Git\Components;
 
-use Bitbucket\API\Http\Response\Pager;
-use Buzz\Message\Response;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Git\Contracts\ClientInterface as GitClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use GrahamCampbell\Bitbucket\Authenticators\BasicAuthenticator;
-use GrahamCampbell\Bitbucket\Authenticators\TokenAuthenticator;
-use Bitbucket\API\Api;
-use Bitbucket\API\Http\Client;
-use Bitbucket\API\Http\ClientInterface;
-use Bitbucket\API\Http\Listener\NormalizeArrayListener;
+use GrahamCampbell\Bitbucket\Authenticators\PasswordAuthenticator;
+use GrahamCampbell\Bitbucket\Authenticators\OauthAuthenticator;
+use Bitbucket\Client;
+use Bitbucket\ResultPager;
 
 class BitbucketClient implements GitClientInterface
 {
@@ -39,40 +35,18 @@ class BitbucketClient implements GitClientInterface
         $auth = null;
 
         if (!empty($username) && !empty($token)) {
-            $auth = new TokenAuthenticator();
+            $auth = new OauthAuthenticator();
         } elseif (!empty($username) && !empty($password)) {
-            $auth = new BasicAuthenticator();
+            $auth = new PasswordAuthenticator();
         }
 
-        $httpClient = $this->getHttpClient();
-        $client = new Api();
-        $client->setClient($httpClient);
+        $client = new Client();
 
         if (empty($auth)) {
             $this->client = $client;
         } else {
             $this->client = $auth->with($client)->authenticate($config);
         }
-    }
-
-    /**
-     * Get the http client.
-     *
-     * @return ClientInterface
-     */
-    protected function getHttpClient()
-    {
-        $options = [
-            'base_url'    => 'https://api.bitbucket.org',
-            'api_version' => '1.0',
-            'verify_peer' => true,
-        ];
-
-        $client = new Client($options);
-
-        $client->addListener(new NormalizeArrayListener());
-
-        return $client;
     }
 
     /**
@@ -96,63 +70,63 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoAll($page = 1, $perPage = 50)
     {
-        $repo = $this->client->api('Repositories');
-        $pager = new Pager($repo->getClient(), $repo->all($this->username));
-        /** @var \Buzz\Message\Response $response */
-        $response = $this->checkResponse($pager->fetchAll());
+        $repo = $this->client->repositories();
 
-        return json_decode($response->getContent(), true)['values'];
+        $pager = new ResultPager($this->client);
+
+        return $pager->fetchAll($repo->users($this->username), "list");
     }
 
     /**
      * @param string $repo
-     * @param null   $path
-     * @param null   $ref
+     * @param null $path
+     * @param null $ref
      *
      * @return array
      * @throws \DreamFactory\Core\Exceptions\RestException
      */
     public function repoList($repo, $path = null, $ref = null)
     {
-        $src = $this->client->api('Repositories\Src');
-        /** @var \Buzz\Message\Response $response */
-        $response = $this->checkResponse($src->get($this->username, $repo, $ref, $path));
 
-        return $this->cleanSrcList(json_decode($response->getContent(), true));
+        $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
+        $pager = new ResultPager($this->client);
+
+        $list = $pager->fetchAll($src, "listPath", [ $ref ]);
+
+        return $this->cleanSrcList($list);
     }
 
     /**
      * @param string $repo
      * @param string $path
-     * @param null   $ref
+     * @param null $ref
      *
      * @return array
      * @throws \DreamFactory\Core\Exceptions\RestException
      */
     public function repoGetFileInfo($repo, $path, $ref = null)
     {
-        $src = $this->client->api('Repositories\Src');
-        /** @var \Buzz\Message\Response $response */
-        $response = $this->checkResponse($src->get($this->username, $repo, $ref, $path));
+        $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
+        $pager = new ResultPager($this->client);
 
-        return $this->cleanSrcData(json_decode($response->getContent(), true));
+        $result = $pager->fetchAll($src, "listPath", [ $ref, $path ]);
+
+        return $this->cleanSrcData($result);
     }
 
     /**
      * @param string $repo
      * @param string $path
-     * @param null   $ref
+     * @param null $ref
      *
      * @return mixed|string
      * @throws \DreamFactory\Core\Exceptions\RestException
      */
     public function repoGetFileContent($repo, $path, $ref = null)
     {
-        $src = $this->client->api('Repositories\Src');
+        $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
 
-        $response = $this->checkResponse($src->raw($this->username, $repo, $ref, $path));
-
-        return $response->getContent();
+        return (string) $src->raw($ref, $path)->getBody();
     }
 
     /**
