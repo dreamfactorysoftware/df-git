@@ -38,7 +38,7 @@ class GitLabConfig extends BaseServiceConfigModel
         switch ($schema['name']) {
             case 'base_url':
                 $schema['label'] = 'Base URL';
-                $schema['description'] = 'Your GitLab base url goes here. Example: https://gitlab.com/api/v3/';
+                $schema['description'] = 'Your GitLab base url goes here. Example: https://gitlab.com/api/v4/';
                 break;
             case 'namespace':
                 $schema['label'] = 'Namespace/Group';
