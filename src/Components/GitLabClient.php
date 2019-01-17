@@ -2,20 +2,23 @@
 
 namespace DreamFactory\Core\Git\Components;
 
-use DreamFactory\Core\Git\Contracts\ClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use Gitlab\Exception\RuntimeException;
+use DreamFactory\Core\Git\Contracts\ClientInterface;
+use GrahamCampbell\GitLab\Authenticators\GitLabAuthenticator;
+use Gitlab\Client;
+use Gitlab\ResultPager;
+use Gitlab\Api\Users;
+use mysql_xdevapi\Result;
 
 class GitLabClient implements ClientInterface
 {
-    /** @var \DreamFactory\Core\Git\Components\GitLabClientExtension */
+    /** @var \GitLab\Client */
     protected $client;
 
-    /** @var array */
-    protected $projectList = [];
 
     /** @var string */
     protected $namespace;
+
 
     /**
      * GitLabClient constructor.
@@ -27,24 +30,30 @@ class GitLabClient implements ClientInterface
     public function __construct($config)
     {
         $this->validateConfig($config);
-        /** @var \DreamFactory\Core\Git\Components\GitLabClientExtension $this ->client */
-        $this->client = new GitLabClientExtension(rtrim($config['base_url'], '/') . '/');
-
-        $this->client->authenticate(
-            $config['token'],
-            array_get($config, 'method', GitLabClientExtension::AUTH_HTTP_TOKEN),
-            array_get($config, 'sudo', null)
-        );
-
+        $client = new Client();
+        $auth = new GitLabAuthenticator('http_token');
+        $this->client = $auth->with($client)->authenticate($config);
+        $this->client->setUrl(array_get($config, 'base_url'));
         $namespace = array_get($config, 'namespace');
         if (empty($namespace)) {
-            $userInfo = $this->client->users->me();
+            $userInfo = $this->client->api('users')->me();
             if (empty($userInfo) || !isset($userInfo['username'])) {
                 throw new InternalServerErrorException('No authenticated user found for GitLab client. Please check GitLab service configuration.');
             }
             $namespace = $userInfo['username'];
         }
         $this->namespace = $namespace;
+        return $config;
+    }
+
+    /**
+     * @param $name
+     *
+     * @return null
+     */
+    protected function getProjectId($name)
+    {
+        return $this->namespace . '/' . $name;
     }
 
     /**
@@ -62,15 +71,9 @@ class GitLabClient implements ClientInterface
         }
     }
 
-    /**
-     * @param int $page
-     * @param int $perPage
-     *
-     * @return array
-     */
-    protected function getProjectList($page = 1, $perPage= 100)
+    public function repoAll($page = 1, $perPage = 50)
     {
-        $listRaw = $this->client->projects->accessible($page, $perPage);
+        $listRaw = $this->client->projects()->all([ 'page' => $page , 'per_page' => $perPage ]);
         $list = [];
         foreach ($listRaw as $item) {
             if (array_get($item, 'namespace.name') === $this->namespace) {
@@ -81,44 +84,33 @@ class GitLabClient implements ClientInterface
         return $list;
     }
 
-    /**
-     * @param $name
-     *
-     * @return null
-     */
-    protected function getProjectId($name)
-    {
-        return $this->namespace . '/' . $name;
-    }
-
-    /** {@inheritdoc} */
-    public function repoAll($page = 1, $perPage = 50)
-    {
-        return $this->getProjectList($page, $perPage);
-    }
-
-    /** {@inheritdoc} */
     public function repoList($repo, $path = null, $ref = null)
     {
-        return $this->client->repo->tree($this->getProjectId($repo), ['path' => $path, 'ref' => $ref]);
+        return $this->client->repositories()->tree($this->getProjectId($repo), [ 'path' => $path, 'ref' => $ref ]);
+//        return $this->client->repo->tree($this->getProjectId($repo), ['path' => $path, 'ref' => $ref]);
     }
 
-    /** {@inheritdoc} */
-    public function repoGetFileInfo($repo, $path, $ref = null)
+    public function repoGetFileInfo($repo, $path = null, $ref = null)
     {
-        try {
+        $result = $this->repoList($repo, $path, $ref);
+        if(0 === count($result)){
+            $result = $this->client->repositories()->getFile($this->getProjectId($repo), $path, $ref);
+        }
+        return $result;
+        /*try {
             return $this->client->repo->getFile($this->getProjectId($repo), $path, $ref);
         } catch (RuntimeException $e) {
             if ($e->getCode() === 404) {
                 // File not found possible a directory path. List directory.
                 return $this->repoList($repo, $path, $ref);
             }
-        }
+        }*/
     }
 
-    /** {@inheritdoc} */
-    public function repoGetFileContent($repo, $path, $ref = null)
+    public function repoGetFileContent($repo, $path = null, $ref = null)
     {
-        return $this->client->repo->blob($this->getProjectId($repo), $ref, $path);
+        return $this->client->repositories()->blob($this->getProjectId($repo), $ref, $path);
+//        return $this->client->repositoryFiles()->getRawFile($this->getProjectId($repo), $path, $ref);
     }
+
 }
