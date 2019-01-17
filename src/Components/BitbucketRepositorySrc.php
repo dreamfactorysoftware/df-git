@@ -36,8 +36,7 @@ class BitbucketRepositorySrc extends Src
      *
      * @return array
      */
-    public function listPath($ref, $path="/", array $params = [])
-    {
+    public function listPath($ref, $path="/", array $params = []){
         return ["values" => $this->get($this->buildSrcPath($ref, $path), $params)];
     }
 

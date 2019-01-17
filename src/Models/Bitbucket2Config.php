@@ -4,7 +4,7 @@ namespace DreamFactory\Core\Git\Models;
 
 use DreamFactory\Core\Models\BaseServiceConfigModel;
 
-class BitbucketConfig2 extends BaseServiceConfigModel
+class Bitbucket2Config extends BaseServiceConfigModel
 {
     /** @var string */
     protected $table = 'bitbucket2_config';

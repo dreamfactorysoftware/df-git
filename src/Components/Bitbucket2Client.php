@@ -17,7 +17,7 @@ class CustomSrc extends Src {
     }
 }
 
-class BitbucketClient2 implements GitClientInterface
+class Bitbucket2Client implements GitClientInterface
 {
     /** @var \Bitbucket\API\Api */
     protected $client;

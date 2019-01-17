@@ -2,7 +2,7 @@
 
 namespace DreamFactory\Core\Git\Resources;
 
-class BitbucketRepo2 extends BaseResource
+class Bitbucket2Repo extends BaseResource
 {
     /** Resource name */
     const RESOURCE_NAME = '_repo';
