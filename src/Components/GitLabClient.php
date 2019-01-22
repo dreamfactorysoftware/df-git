@@ -6,8 +6,6 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use GrahamCampbell\GitLab\Authenticators\GitLabAuthenticator;
 use Gitlab\Client;
-use Gitlab\ResultPager;
-use Gitlab\Api\Users;
 
 class GitLabClient implements ClientInterface
 {
