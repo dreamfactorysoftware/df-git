@@ -11,8 +11,10 @@ use Bitbucket\Client;
 use Bitbucket\Api\Repositories\Users\Src;
 use Bitbucket\ResultPager;
 
-class CustomSrc extends Src {
-    public function listPath($ref, $path, $params) {
+class CustomSrc extends Src
+{
+    public function listPath($ref, $path, $params = [])
+    {
         return $this->get($this->buildSrcPath($ref, $path), $params);
     }
 }
@@ -96,7 +98,7 @@ class Bitbucket2Client implements GitClientInterface
         $params = [
             'fields' => 'values.commit.hash,values.commit.date,values.commit.revision,values.path,values.name,values.type,values.node,values.size'
         ];
-        $list = $pager->fetchAll($src, "list", [ $params ]);
+        $list = $pager->fetchAll($src, "list", [$params]);
 
         return $this->cleanSrcList($list);
     }
@@ -113,11 +115,13 @@ class Bitbucket2Client implements GitClientInterface
     {
         $src = new CustomSrc($this->client->getHttpClient(), $this->username, $repo);
 
-        $result = $src->listPath($ref, $path, [ 'format' => 'meta' ]);
+        $result = $src->listPath($ref, $path, ['format' => 'meta']);
         if ('commit_directory' === $result['type']) {
             $pager = new ResultPager($this->client);
-            $params = [ 'fields' => 'values.commit.hash,values.commit.date,values.path,values.name,values.type,values.node,values.size' ];
-            $result = $pager->fetchAll($src, "listPath", [ $ref, $path, $params ]);
+            $params = [
+                'fields' => 'values.commit.hash,values.commit.date,values.path,values.name,values.type,values.node,values.size'
+            ];
+            $result = $pager->fetchAll($src, "listPath", [$ref, $path, $params]);
             $result = $this->cleanSrcList($result);
         } else {
             $file_content = $src->download($ref, $path);
@@ -137,9 +141,35 @@ class Bitbucket2Client implements GitClientInterface
      */
     public function repoGetFileContent($repo, $path, $ref = null)
     {
-        $src = $this->client->repositories()->users($this->username)->src($repo);
+        $src = new CustomSrc($this->client->getHttpClient(), $this->username, $repo);
 
-        return (string) $src->download($ref, $path);
+        $result = $src->listPath($ref, $path, ['format' => 'meta']);
+
+        if ('commit_directory' === $result['type']) {
+            $pager = new ResultPager($this->client);
+            $params = ['fields' => 'values.path,values.name'];
+            $result = $pager->fetchAll($src, "listPath", [$ref, $path, $params]);
+            return $this->cleanDirectoryContent($result);
+        } else {
+            return (string)$src->download($ref, $path);
+        }
+
+    }
+
+    /**
+     * @param $list
+     *
+     * @return array
+     */
+    protected function cleanDirectoryContent($list)
+    {
+        $names = [];
+        foreach ($list as $obj) {
+            $chuckedName = explode('/', $obj['path']);
+            $name = array_pop($chuckedName);
+            $names[] = $name;
+        }
+        return implode("\n", $names);
     }
 
     /**
@@ -153,9 +183,9 @@ class Bitbucket2Client implements GitClientInterface
         $files = array();
 
         foreach ($list as $obj) {
-            if ($obj['type'] == "commit_directory") {
+            if ("commit_directory" === $obj['type']) {
                 $dirs[] = $obj;
-            } elseif ($obj['type'] == "commit_file") {
+            } elseif ("commit_file" === $obj['type']) {
                 $files[] = $obj;
             }
         }
