@@ -12,7 +12,7 @@ use Bitbucket\ResultPager;
 
 class BitbucketClient implements GitClientInterface
 {
-    /** @var \Bitbucket\API\Api */
+    /** @var \Bitbucket\Client */
     protected $client;
 
     /** @var String */
@@ -91,7 +91,7 @@ class BitbucketClient implements GitClientInterface
         $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
         $pager = new ResultPager($this->client);
 
-        $list = $pager->fetchAll($src, "listPath", [ $ref ]);
+        $list = $pager->fetchAll($src, "listPath", [$ref]);
 
         return $this->cleanSrcList($list);
     }
@@ -109,7 +109,7 @@ class BitbucketClient implements GitClientInterface
         $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
         $pager = new ResultPager($this->client);
 
-        $result = $pager->fetchAll($src, "listPath", [ $ref, $path ]);
+        $result = $pager->fetchAll($src, "listPath", [$ref, $path]);
 
         return $this->cleanSrcData($result);
     }
@@ -126,7 +126,7 @@ class BitbucketClient implements GitClientInterface
     {
         $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
 
-        return (string) $src->raw($ref, $path)->getBody();
+        return (string)$src->raw($ref, $path)->getBody();
     }
 
     /**
