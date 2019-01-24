@@ -42,7 +42,7 @@ class GitLabConfig extends BaseServiceConfigModel
                 break;
             case 'namespace':
                 $schema['label'] = 'Namespace/Group';
-                $schema['description'] = 'Enter your GitLab namespace/group name here. ' .
+                $schema['description'] = 'Enter your GitLab namespace/group path here. ' .
                     'If this is left blank then your username will be used as namespace. ' .
                     'You will only see projects that are under your namespace.';
                 break;
