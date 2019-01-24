@@ -6,6 +6,19 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use GrahamCampbell\GitLab\Authenticators\GitLabAuthenticator;
 use Gitlab\Client;
+use Gitlab\Api\Users;
+
+class CustomUsers extends Users
+{
+    /**
+     * @param int $id
+     * @return mixed
+     */
+    public function usersProjects($id)
+    {
+        return $this->get('users/' . $this->encodePath($id) . '/projects');
+    }
+}
 
 class GitLabClient implements ClientInterface
 {
@@ -70,17 +83,18 @@ class GitLabClient implements ClientInterface
     }
 
     /** {@inheritdoc} */
-    public function repoAll($page = 1, $perPage = 50)
+    public function repoAll($page = 1, $perPage = 100)
     {
-        $listRaw = $this->client->projects()->all(['page' => $page, 'per_page' => $perPage]);
-        $list = [];
-        foreach ($listRaw as $item) {
-            if (array_get($item, 'namespace.name') === $this->namespace) {
-                $list[] = $item;
-            }
-        }
+        $username = $this->client->api('users')->me()['username'];
 
-        return $list;
+        if ($this->namespace !== $username) {
+            $groupList = $this->client->groups()->projects(rawurlencode($this->namespace), ['page' => (int)$page, 'per_page' => (int)$perPage]);
+            return $groupList;
+        } else {
+            $cu = new CustomUsers($this->client);
+            $userList = $cu->usersProjects($username, ['page' => (int)$page, 'per_page' => (int)$perPage]);
+            return $userList;
+        }
     }
 
     /** {@inheritdoc} */
@@ -95,6 +109,8 @@ class GitLabClient implements ClientInterface
         $result = $this->repoList($repo, $path, $ref);
         if (0 === count($result)) {
             $result = $this->client->repositories()->getFile($this->getProjectId($repo), $path, $ref);
+            $result['path'] = $result['file_path'];
+
         }
 
         return $result;
