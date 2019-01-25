@@ -12,11 +12,14 @@ class CustomUsers extends Users
 {
     /**
      * @param int $id
+     * @param array $params
      * @return mixed
      */
-    public function usersProjects($id)
+    public function usersProjects($id, array $params = [])
     {
-        return $this->get('users/' . $this->encodePath($id) . '/projects');
+        $resolver = $this->createOptionsResolver();
+
+        return $this->get('users/' . $this->encodePath($id) . '/projects', $resolver->resolve($params));
     }
 }
 
@@ -28,7 +31,6 @@ class GitLabClient implements ClientInterface
 
     /** @var string */
     protected $namespace;
-
 
     /**
      * GitLabClient constructor.
@@ -83,16 +85,17 @@ class GitLabClient implements ClientInterface
     }
 
     /** {@inheritdoc} */
-    public function repoAll($page = 1, $perPage = 100)
+    public function repoAll($page = 1, $perPage = 50)
     {
         $username = $this->client->api('users')->me()['username'];
+        $params = ['page' => (int)$page, 'per_page' => (int)$perPage];
 
-        if ($this->namespace !== $username) {
-            $groupList = $this->client->groups()->projects(rawurlencode($this->namespace), ['page' => (int)$page, 'per_page' => (int)$perPage]);
+        if ($username !== $this->namespace) {
+            $groupList = $this->client->groups()->projects(rawurlencode($this->namespace), $params);
             return $groupList;
         } else {
             $cu = new CustomUsers($this->client);
-            $userList = $cu->usersProjects($username, ['page' => (int)$page, 'per_page' => (int)$perPage]);
+            $userList = $cu->usersProjects($username, $params);
             return $userList;
         }
     }
