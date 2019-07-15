@@ -1,2 +1,3 @@
 # df-git
-Git services for DreamFactory Platform
+
+BitBucket, GitHub, and GitLab services for DreamFactory Platform

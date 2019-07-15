@@ -38,11 +38,11 @@ class GitLabConfig extends BaseServiceConfigModel
         switch ($schema['name']) {
             case 'base_url':
                 $schema['label'] = 'Base URL';
-                $schema['description'] = 'Your GitLab base url goes here. Example: https://gitlab.com/api/v3/';
+                $schema['description'] = 'Your GitLab base url goes here. Example: https://gitlab.com/api/v4/';
                 break;
             case 'namespace':
                 $schema['label'] = 'Namespace/Group';
-                $schema['description'] = 'Enter your GitLab namespace/group name here. ' .
+                $schema['description'] = 'Enter your GitLab namespace/group path here. ' .
                     'If this is left blank then your username will be used as namespace. ' .
                     'You will only see projects that are under your namespace.';
                 break;

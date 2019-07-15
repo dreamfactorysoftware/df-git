@@ -17,6 +17,7 @@ class GitLabRepo extends BaseResource
                 'file_path'      => ['type' => 'string'],
                 'size'           => ['type' => 'integer'],
                 'encoding'       => ['type' => 'string'],
+                'content_sha256' => ['type' => 'string'],
                 'content'        => ['type' => 'string'],
                 'ref'            => ['type' => 'string'],
                 'blob_id'        => ['type' => 'string'],
