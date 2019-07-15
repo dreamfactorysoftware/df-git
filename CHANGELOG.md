@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [0.4.0] - 2019-07-15
+### Changed
+- Upgraded BitBucket, GitHub, and GitLab APIs
+
 ## [0.3.1] - 2018-02-25
 ### Added
 - DF-1286 - Added support for bitbucket service
@@ -20,9 +24,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.1.0] - 2017-09-18
 ### Added
-- Fist release
+- First release
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-git/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-git/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/dreamfactorysoftware/df-git/compare/0.3.1...0.4.0 
 [0.3.1]: https://github.com/dreamfactorysoftware/df-git/compare/0.3.0...0.3.1 
 [0.3.0]: https://github.com/dreamfactorysoftware/df-git/compare/0.2.0...0.3.0 
 [0.2.0]: https://github.com/dreamfactorysoftware/df-git/compare/0.1.1...0.2.0 
