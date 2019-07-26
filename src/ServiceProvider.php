@@ -4,10 +4,8 @@ namespace DreamFactory\Core\Git;
 
 use DreamFactory\Core\Enums\ServiceTypeGroups;
 use DreamFactory\Core\Git\Models\BitbucketConfig;
-use DreamFactory\Core\Git\Models\Bitbucket2Config;
 use DreamFactory\Core\Git\Models\GitHubConfig;
 use DreamFactory\Core\Git\Services\Bitbucket;
-use DreamFactory\Core\Git\Services\Bitbucket2;
 use DreamFactory\Core\Git\Services\GitHub;
 use DreamFactory\Core\Git\Services\GitLab;
 use DreamFactory\Core\Git\Models\GitLabConfig;
@@ -48,23 +46,11 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                 new ServiceType([
                     'name'            => 'bitbucket',
                     'label'           => 'Bitbucket Service',
-                    'description'     => 'A client service for Bitbucket',
+                    'description'     => 'A client service for Bitbucket API 2.0',
                     'group'           => ServiceTypeGroups::SCM,
                     'config_handler'  => BitbucketConfig::class,
                     'factory'         => function ($config){
                         return new Bitbucket($config);
-                    },
-                ])
-            );
-            $df->addType(
-                new ServiceType([
-                    'name'            => 'bitbucket2',
-                    'label'           => 'Bitbucket2 Service',
-                    'description'     => 'A client service for Bitbucket API 2.0',
-                    'group'           => ServiceTypeGroups::SCM,
-                    'config_handler'  => Bitbucket2Config::class,
-                    'factory'         => function ($config){
-                        return new Bitbucket2($config);
                     },
                 ])
             );
