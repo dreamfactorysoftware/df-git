@@ -8,7 +8,16 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use GrahamCampbell\Bitbucket\Authenticators\PasswordAuthenticator;
 use GrahamCampbell\Bitbucket\Authenticators\OauthAuthenticator;
 use Bitbucket\Client;
+use Bitbucket\Api\Repositories\Users\Src;
 use Bitbucket\ResultPager;
+
+class CustomSrc extends Src
+{
+    public function listPath($ref, $path, $params = [])
+    {
+        return $this->get($this->buildSrcPath($ref, $path), $params);
+    }
+}
 
 class BitbucketClient implements GitClientInterface
 {
@@ -73,7 +82,6 @@ class BitbucketClient implements GitClientInterface
         $repo = $this->client->repositories();
 
         $pager = new ResultPager($this->client);
-
         return $pager->fetchAll($repo->users($this->username), "list");
     }
 
@@ -87,11 +95,12 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoList($repo, $path = null, $ref = null)
     {
-
-        $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
+        $src = $this->client->repositories()->users($this->username)->src($repo);
         $pager = new ResultPager($this->client);
-
-        $list = $pager->fetchAll($src, "listPath", [$ref]);
+        $params = [
+            'fields' => 'values.commit.hash,values.commit.date,values.commit.revision,values.path,values.name,values.type,values.node,values.size'
+        ];
+        $list = $pager->fetchAll($src, "list", [$params]);
 
         return $this->cleanSrcList($list);
     }
@@ -106,12 +115,22 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoGetFileInfo($repo, $path, $ref = null)
     {
-        $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
-        $pager = new ResultPager($this->client);
+        $src = new CustomSrc($this->client->getHttpClient(), $this->username, $repo);
 
-        $result = $pager->fetchAll($src, "listPath", [$ref, $path]);
+        $result = $src->listPath($ref, $path, ['format' => 'meta']);
+        if ('commit_directory' === $result['type']) {
+            $pager = new ResultPager($this->client);
+            $params = [
+                'fields' => 'values.commit.hash,values.commit.date,values.path,values.name,values.type,values.node,values.size'
+            ];
+            $result = $pager->fetchAll($src, "listPath", [$ref, $path, $params]);
+            $result = $this->cleanSrcList($result);
+        } else {
+            $file_content = $src->download($ref, $path);
+            $result = $this->cleanSrcData($result, $file_content);
+        }
 
-        return $this->cleanSrcData($result);
+        return $result;
     }
 
     /**
@@ -124,26 +143,35 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoGetFileContent($repo, $path, $ref = null)
     {
-        $src = new BitbucketRepositorySrc($this->client->getHttpClient(), $this->username, $repo);
+        $src = new CustomSrc($this->client->getHttpClient(), $this->username, $repo);
 
-        return (string)$src->raw($ref, $path)->getBody();
+        $result = $src->listPath($ref, $path, ['format' => 'meta']);
+
+        if ('commit_directory' === $result['type']) {
+            $pager = new ResultPager($this->client);
+            $params = ['fields' => 'values.path,values.name'];
+            $result = $pager->fetchAll($src, "listPath", [$ref, $path, $params]);
+            return $this->cleanDirectoryContent($result);
+        } else {
+            return (string)$src->download($ref, $path);
+        }
+
     }
 
     /**
-     * @param \Buzz\Message\Response $response
+     * @param $list
      *
-     * @return \Buzz\Message\Response
-     * @throws \DreamFactory\Core\Exceptions\RestException
+     * @return array
      */
-    protected function checkResponse(Response $response)
+    protected function cleanDirectoryContent($list)
     {
-        $statusCode = $response->getStatusCode();
-
-        if ($statusCode >= 300) {
-            throw new RestException($statusCode, $response->getContent());
+        $names = [];
+        foreach ($list as $obj) {
+            $chuckedName = explode('/', $obj['path']);
+            $name = array_pop($chuckedName);
+            $names[] = $name;
         }
-
-        return $response;
+        return implode("\n", $names);
     }
 
     /**
@@ -153,25 +181,41 @@ class BitbucketClient implements GitClientInterface
      */
     protected function cleanSrcList($list)
     {
-        $dirs = array_get($list, 'directories');
-        $files = array_get($list, 'files');
-        $path = array_get($list, 'path');
-        $node = array_get($list, 'node');
+        $dirs = array();
+        $files = array();
+
+        foreach ($list as $obj) {
+            if ("commit_directory" === $obj['type']) {
+                $dirs[] = $obj;
+            } elseif ("commit_file" === $obj['type']) {
+                $files[] = $obj;
+            }
+        }
 
         foreach ($dirs as $key => $dir) {
+            $chunked_path = explode('/', $dir['path']);
             $dirs[$key] = [
-                'name' => $dir,
-                'path' => $path,
+                'name' => array_pop($chunked_path),
+                'path' => implode("/", $chunked_path) . '/',
                 'type' => 'dir',
-                'node' => $node
+                'node' => $dir['commit']['hash']
             ];
         }
 
         foreach ($files as $key => $file) {
             $name = array_get($file, 'path');
-            $files[$key]['name'] = $name;
-            $files[$key]['type'] = 'file';
-            $files[$key]['node'] = $node;
+            $date = new \DateTime($file['commit']['date']);
+            $date->setTimeZone(new \DateTimeZone('UTC'));
+            $files[$key] = [
+                'size' => $file['size'],
+                'path' => $file['path'],
+                'timestamp' => date_format($date, 'Y-m-d\TH:i:s\Z'),
+                'utctimestamp' => $date->format('Y-m-d H:i:sP'),
+                'revision' => $file['commit']['hash'],
+                'name' => $name,
+                'type' => 'file',
+                'node' => $file['commit']['hash']
+            ];
         }
 
         return array_merge($dirs, $files);
@@ -179,23 +223,23 @@ class BitbucketClient implements GitClientInterface
 
     /**
      * @param $data
+     * @param $content
      *
      * @return array
      */
-    protected function cleanSrcData($data)
+    protected function cleanSrcData($data, $content)
     {
-        if (isset($data['data'])) {
-            $content = base64_encode($data['data']);
-            $size = array_get($data, 'size');
-            unset($data['size']);
-            unset($data['data']); // Keeping response consistent with other SCM services using key 'content' instead of 'data'
-            $data['content'] = $content;
-            $data['encoding'] = 'base64';
-            $data['size'] = $size;
+        $content = base64_encode($content);
+        $size = array_get($data, 'size');
+        $path = array_get($data, 'path');
+        $data = [
+            'node' => $data['commit']['hash'],
+            'path' => $path,
+            'content' => $content,
+            'encoding' => 'base64',
+            'size' => $size,
+        ];
 
-            return $data;
-        } elseif (isset($data['files']) || isset($data['directories'])) {
-            return $this->cleanSrcList($data);
-        }
+        return $data;
     }
 }
