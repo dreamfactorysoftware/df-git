@@ -24,8 +24,8 @@ class CreateBitbucket2ConfigTable extends Migration
                 $t->text('token')->nullable();
             }
         );
-        DB::table('service')->where('service.type', '=', 'bitbucket')
-                            ->update(['service.type' => 'bitbucket2']);
+        DB::table('service')->where('type', '=', 'bitbucket')
+                            ->update(['type' => 'bitbucket2']);
         $bitbucket_config_data = DB::table("bitbucket_config")->get();
         foreach($bitbucket_config_data as $bitbucket_record){
             if(!(DB::table('bitbucket2_config')->where('service_id', '=', $bitbucket_record->service_id)->get()->count() > 0)){
@@ -60,8 +60,8 @@ class CreateBitbucket2ConfigTable extends Migration
                 ]);
             }
         }
-        DB::table('service')->where('service.type', '=', 'bitbucket2')
-                            ->update(['service.type' => 'bitbucket']);
+        DB::table('service')->where('type', '=', 'bitbucket2')
+                            ->update(['type' => 'bitbucket']);
         DB::table("bitbucket2_config")->delete();
         Schema::dropIfExists('bitbucket2_config');
     }

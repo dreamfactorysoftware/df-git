@@ -14,8 +14,8 @@ class RenameServiceTypeFromBitbucket2ToBitbucket extends Migration
      */
     public function up()
     {
-        DB::table('service')->where('service.type', '=', 'bitbucket2')
-                            ->update(['service.type' => 'bitbucket']);
+        DB::table('service')->where('type', '=', 'bitbucket2')
+                            ->update(['type' => 'bitbucket']);
     }
 
     /**
@@ -25,7 +25,7 @@ class RenameServiceTypeFromBitbucket2ToBitbucket extends Migration
      */
     public function down()
     {
-        DB::table('service')->where('service.type', '=', 'bitbucket')
-                            ->update(['service.type' => 'bitbucket2']);
+        DB::table('service')->where('type', '=', 'bitbucket')
+                            ->update(['type' => 'bitbucket2']);
     }
 }
