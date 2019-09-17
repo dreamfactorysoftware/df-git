@@ -32,7 +32,7 @@
     "wiki":   "https://wiki.dreamfactory.com"
   },
   "require":     {
-    "dreamfactory/df-core": "~0.15.1",
+    "dreamfactory/df-core": "dev-laravel-upgrade",
     "graham-campbell/github": "^7.5",
     "graham-campbell/gitlab": "^1.7.0",
     "graham-campbell/bitbucket": "^4.2",
