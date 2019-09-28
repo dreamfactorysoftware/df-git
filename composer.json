@@ -33,9 +33,9 @@
   },
   "require":     {
     "dreamfactory/df-core": "dev-laravel-upgrade",
-    "graham-campbell/github": "^7.5",
-    "graham-campbell/gitlab": "^1.7.0",
-    "graham-campbell/bitbucket": "^4.2",
+    "graham-campbell/github": "^7.5|^8.2",
+    "graham-campbell/gitlab": "^1.7.0|^2.2",
+    "graham-campbell/bitbucket": "^4.2|^5.2",
     "php-http/guzzle6-adapter": "^1.1"
   },
   "autoload":    {
