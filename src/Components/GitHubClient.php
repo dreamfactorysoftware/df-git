@@ -7,6 +7,7 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use GrahamCampbell\GitHub\Authenticators\TokenAuthenticator;
 use GrahamCampbell\GitHub\Authenticators\PasswordAuthenticator;
+use Log;
 
 class GitHubClient implements ClientInterface
 {
@@ -81,6 +82,12 @@ class GitHubClient implements ClientInterface
     /** {@inheritdoc} */
     public function repoGetFileContent($repo, $path, $ref = null)
     {
+        \Log::debug('GITHUB CLIENT:' . $this->client->getApiVersion());
+        if (is_array($this->client->repo()->contents()->download($this->username, $repo, $path, $ref))) {
+            \Log::debug('REPO FILE CONTENT RESPONSE:', $this->client->repo()->contents()->download($this->username, $repo, $path, $ref));
+        } else {
+            \Log::debug('REPO FILE CONTENT RESPONSE:' . $this->client->repo()->contents()->download($this->username, $repo, $path, $ref));
+        }
         return $this->client->repo()->contents()->download($this->username, $repo, $path, $ref);
     }
 }
