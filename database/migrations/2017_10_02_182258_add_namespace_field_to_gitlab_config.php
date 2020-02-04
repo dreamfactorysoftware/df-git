@@ -28,7 +28,7 @@ class AddNamespaceFieldToGitlabConfig extends Migration
     public function down()
     {
         if (Schema::hasTable('gitlab_config') && Schema::hasColumn('gitlab_config', 'namespace')) {
-            Schema::table('script_config', function (Blueprint $t){
+            Schema::table('gitlab_config', function (Blueprint $t){
                 $t->dropColumn('namespace');
             });
         }
