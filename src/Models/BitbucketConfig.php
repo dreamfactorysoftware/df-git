@@ -48,7 +48,8 @@ class BitbucketConfig extends BaseServiceConfigModel
             case 'password':
                 $schema['type'] = 'password';
                 $schema['label'] = 'Password';
-                $schema['description'] = 'Your Bitbucket password goes here.';
+                $schema['description'] = 'Your Bitbucket password. For Bitbucket cloud this will be the App Password. ' .
+                    'If you use an App Password there is no need to enter a token below';
                 break;
             case 'token':
                 $schema['label'] = 'Bitbucket Token';
