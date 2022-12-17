@@ -3,10 +3,26 @@
 namespace DreamFactory\Core\Git\Components;
 
 use Github\Client;
+use Github\Api\User;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
-use GrahamCampbell\GitHub\Authenticators\TokenAuthenticator;
-use GrahamCampbell\GitHub\Authenticators\PasswordAuthenticator;
+use GrahamCampbell\GitHub\Auth\AuthenticatorFactory;
+use Illuminate\Support\Arr;
+
+class GitHubUser extends User
+{
+    public function repositories($username, $type = 'owner', $sort = 'full_name', $direction = 'asc', $visibility = 'all', $affiliation = 'owner,collaborator,organization_member', $extra = [])
+    {
+        $headers = array_merge([
+            'type' => $type,
+            'sort' => $sort,
+            'direction' => $direction,
+            'visibility' => $visibility,
+            'affiliation' => $affiliation
+        ], $extra);
+        return $this->get('/users/'.rawurlencode($username).'/repos', $headers);
+    }
+}
 
 class GitHubClient implements ClientInterface
 {
@@ -27,15 +43,15 @@ class GitHubClient implements ClientInterface
     {
         $this->validateConfig($config);
         $this->username = $config['vendor'];
-        $username = array_get($config, 'username');
-        $password = array_get($config, 'password');
-        $token = array_get($config, 'token');
+        $username = Arr::get($config, 'username');
+        $password = Arr::get($config, 'password');
+        $token = Arr::get($config, 'token');
+        
+        $authFactory = new AuthenticatorFactory();
         $auth = null;
 
         if (!empty($username) && !empty($token)) {
-            $auth = new TokenAuthenticator();
-        } elseif (!empty($username) && !empty($password)) {
-            $auth = new PasswordAuthenticator();
+            $auth = $authFactory->make('token');
         }
 
         if (empty($auth)) {
@@ -52,7 +68,7 @@ class GitHubClient implements ClientInterface
      */
     protected function validateConfig($config)
     {
-        if (empty(array_get($config, 'vendor'))) {
+        if (empty(Arr::get($config, 'vendor'))) {
             throw new InternalServerErrorException('No account/organization name provided for GitHub client.');
         }
     }
@@ -75,12 +91,12 @@ class GitHubClient implements ClientInterface
     /** {@inheritdoc} */
     public function repoGetFileInfo($repo, $path, $ref = null)
     {
-        return $this->repoList($repo, $path, $ref);
+        return $this->repoList($repo, rtrim($path, '/'), $ref);
     }
 
     /** {@inheritdoc} */
     public function repoGetFileContent($repo, $path, $ref = null)
     {
-        return $this->client->repo()->contents()->download($this->username, $repo, $path, $ref);
+        return $this->client->repo()->contents()->download($this->username, $repo, rtrim($path, '/'), $ref);
     }
 }

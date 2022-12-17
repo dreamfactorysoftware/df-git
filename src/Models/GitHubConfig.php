@@ -29,6 +29,9 @@ class GitHubConfig extends BaseServiceConfigModel
     /** @var array */
     protected $protected = ['token', 'password'];
 
+    /** @var array */
+    protected $rules = ['token' => 'required'];
+
     /**
      * {@inheritdoc}
      */
@@ -48,7 +51,7 @@ class GitHubConfig extends BaseServiceConfigModel
             case 'password':
                 $schema['type'] = 'password';
                 $schema['label'] = 'Password';
-                $schema['description'] = 'Your GitHub password goes here.';
+                $schema['description'] = 'WARNING Password authentication is not supported. Please use a personal access token.';
                 break;
             case 'token':
                 $schema['label'] = 'GitHub Token';

@@ -2,20 +2,25 @@
 
 namespace DreamFactory\Core\Git\Components;
 
-use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Git\Contracts\ClientInterface as GitClientInterface;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use GrahamCampbell\Bitbucket\Authenticators\PasswordAuthenticator;
-use GrahamCampbell\Bitbucket\Authenticators\OauthAuthenticator;
 use Bitbucket\Client;
-use Bitbucket\Api\Repositories\Users\Src;
 use Bitbucket\ResultPager;
+use Bitbucket\Api\Repositories\Workspaces;
+use Bitbucket\Api\Repositories\Workspaces\Src;
+use GrahamCampbell\Bitbucket\Auth\AuthenticatorFactory;
+use Illuminate\Support\Arr;
 
+/*
+Method 'listPath' is similar to 'show' method from library, 
+but it gives us full control over $params variable,
+so we do not establish ['format' => 'meta'] into it 
+*/
 class CustomSrc extends Src
 {
     public function listPath($ref, $path, $params = [])
     {
-        return $this->get($this->buildSrcPath($ref, $path), $params);
+        return $this->get($this->buildSrcUri($ref, $path), $params);
     }
 }
 
@@ -26,6 +31,9 @@ class BitbucketClient implements GitClientInterface
 
     /** @var String */
     protected $username;
+
+    /** @var Bitbucket\Api\Repositories\AbstractRepositoriesApi */
+    protected $workspace;
 
     /**
      * BitbucketClient constructor.
@@ -38,18 +46,21 @@ class BitbucketClient implements GitClientInterface
     {
         $this->validateConfig($config);
         $this->username = $config['vendor'];
-        $username = array_get($config, 'username');
-        $password = array_get($config, 'password');
-        $token = array_get($config, 'token');
+        $username = Arr::get($config, 'username');
+        $password = Arr::get($config, 'password');
+        $token = Arr::get($config, 'token');
+
+        $authFactory = new AuthenticatorFactory();
         $auth = null;
 
         if (!empty($username) && !empty($token)) {
-            $auth = new OauthAuthenticator();
+            $auth = $authFactory->make('oauth');
         } elseif (!empty($username) && !empty($password)) {
-            $auth = new PasswordAuthenticator();
+            $auth = $authFactory->make('password');
         }
 
         $client = new Client();
+        $this->workspace = new Workspaces($client, $username);
 
         if (empty($auth)) {
             $this->client = $client;
@@ -65,7 +76,7 @@ class BitbucketClient implements GitClientInterface
      */
     protected function validateConfig($config)
     {
-        if (empty(array_get($config, 'vendor'))) {
+        if (empty(Arr::get($config, 'vendor'))) {
             throw new InternalServerErrorException('No account/organization name provided for Bitbucket client.');
         }
     }
@@ -79,10 +90,9 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoAll($page = 1, $perPage = 50)
     {
-        $repo = $this->client->repositories();
-
         $pager = new ResultPager($this->client);
-        return $pager->fetchAll($repo->users($this->username), "list");
+        $repositories = $pager->fetchAll($this->workspace, "list");
+        return array_chunk($repositories, $perPage)[$page - 1];
     }
 
     /**
@@ -95,7 +105,7 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoList($repo, $path = null, $ref = null)
     {
-        $src = $this->client->repositories()->users($this->username)->src($repo);
+        $src = $this->workspace->src($repo);
         $pager = new ResultPager($this->client);
         $params = [
             'fields' => 'values.commit.hash,values.commit.date,values.commit.revision,values.path,values.name,values.type,values.node,values.size'
@@ -115,9 +125,9 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoGetFileInfo($repo, $path, $ref = null)
     {
-        $src = new CustomSrc($this->client->getHttpClient(), $this->username, $repo);
+        $src = new CustomSrc($this->client, $this->username, $repo);
 
-        $result = $src->listPath($ref, $path, ['format' => 'meta']);
+        $result = $src->show($ref, $path);
         if ('commit_directory' === $result['type']) {
             $pager = new ResultPager($this->client);
             $params = [
@@ -143,9 +153,9 @@ class BitbucketClient implements GitClientInterface
      */
     public function repoGetFileContent($repo, $path, $ref = null)
     {
-        $src = new CustomSrc($this->client->getHttpClient(), $this->username, $repo);
+        $src = new CustomSrc($this->client, $this->username, $repo);
 
-        $result = $src->listPath($ref, $path, ['format' => 'meta']);
+        $result = $src->show($ref, $path);
 
         if ('commit_directory' === $result['type']) {
             $pager = new ResultPager($this->client);
@@ -203,7 +213,7 @@ class BitbucketClient implements GitClientInterface
         }
 
         foreach ($files as $key => $file) {
-            $name = array_get($file, 'path');
+            $name = Arr::get($file, 'path');
             $date = new \DateTime($file['commit']['date']);
             $date->setTimeZone(new \DateTimeZone('UTC'));
             $files[$key] = [
@@ -230,8 +240,8 @@ class BitbucketClient implements GitClientInterface
     protected function cleanSrcData($data, $content)
     {
         $content = base64_encode($content);
-        $size = array_get($data, 'size');
-        $path = array_get($data, 'path');
+        $size = Arr::get($data, 'size');
+        $path = Arr::get($data, 'path');
         $data = [
             'node' => $data['commit']['hash'],
             'path' => $path,

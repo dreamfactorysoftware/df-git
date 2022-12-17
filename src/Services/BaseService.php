@@ -5,6 +5,7 @@ namespace DreamFactory\Core\Git\Services;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Core\Utility\Session;
+use Illuminate\Support\Arr;
 
 abstract class BaseService extends BaseRestService
 {
@@ -15,7 +16,7 @@ abstract class BaseService extends BaseRestService
     {
         parent::__construct($settings);
 
-        $config = array_get($settings, 'config');
+        $config = Arr::get($settings, 'config');
         Session::replaceLookups($config, true);
 
         if (empty($config)) {
