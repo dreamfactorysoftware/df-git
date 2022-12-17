@@ -7,6 +7,8 @@ use DreamFactory\Core\Resources\BaseRestResource;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use Github\Exception\RuntimeException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class BaseResource extends BaseRestResource
 {
@@ -37,7 +39,7 @@ class BaseResource extends BaseRestResource
         $perPage = $this->request->getParameter('per_page', 50);
 
         $resourceArray = $this->resourceArray;
-        $repo = array_get($resourceArray, 0);
+        $repo = Arr::get($resourceArray, 0);
 
         try {
             if (empty($repo)) {
@@ -74,7 +76,7 @@ class BaseResource extends BaseRestResource
     protected function getApiDocPaths()
     {
         $service = $this->getServiceName();
-        $capitalized = camelize($service);
+        $capitalized = Str::camel($service);
         $resourceName = strtolower($this->name);
         $path = '/' . $resourceName;
 
