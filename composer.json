@@ -34,7 +34,7 @@
   "minimum-stability": "dev",
   "prefer-stable":     true,
   "require":     {
-    "dreamfactory/df-core": "dev-develop as 1.0.4",
+    "dreamfactory/df-core": "~1.0.4",
     "graham-campbell/github": "^12.6",
     "graham-campbell/gitlab": "^7.5",
     "graham-campbell/bitbucket": "^10.4",
