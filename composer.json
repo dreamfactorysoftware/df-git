@@ -34,10 +34,10 @@
   "minimum-stability": "dev",
   "prefer-stable":     true,
   "require":     {
-    "dreamfactory/df-core": "~1.0",
-    "graham-campbell/github": "^10.3.1",
-    "graham-campbell/gitlab": "^5.4.1",
-    "graham-campbell/bitbucket": "^8.1",
+    "dreamfactory/df-core": "~1.0.4",
+    "graham-campbell/github": "^12.6",
+    "graham-campbell/gitlab": "^7.5",
+    "graham-campbell/bitbucket": "^10.4",
     "php-http/guzzle7-adapter": "^1.0.0"
   },
   "autoload":    {
