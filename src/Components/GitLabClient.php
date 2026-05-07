@@ -6,23 +6,7 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use GrahamCampbell\GitLab\Auth\AuthenticatorFactory;
 use Gitlab\Client;
-use Gitlab\Api\Users;
 use Illuminate\Support\Arr;
-
-class CustomUsers extends Users
-{
-    /**
-     * @param int $id
-     * @param array $params
-     * @return mixed
-     */
-    public function usersProjects($id, array $params = [])
-    {
-        $resolver = $this->createOptionsResolver();
-
-        return $this->get('users/' . $this->encodePath($id) . '/projects', $resolver->resolve($params));
-    }
-}
 
 class GitLabClient implements ClientInterface
 {
@@ -32,6 +16,9 @@ class GitLabClient implements ClientInterface
 
     /** @var string */
     protected $namespace;
+
+    /** @var int|null */
+    protected $userId;
 
     /**
      * GitLabClient constructor.
@@ -58,6 +45,7 @@ class GitLabClient implements ClientInterface
                 throw new InternalServerErrorException('No authenticated user found for GitLab client. Please check GitLab service configuration.');
             }
             $namespace = $userInfo['username'];
+            $this->userId = isset($userInfo['id']) ? (int) $userInfo['id'] : null;
         }
         $this->namespace = $namespace;
     }
@@ -90,17 +78,20 @@ class GitLabClient implements ClientInterface
     /** {@inheritdoc} */
     public function repoAll($page = 1, $perPage = 50)
     {
-        $username = $this->client->users()->me()['username'];
+        $userInfo = $this->client->users()->me();
+        $username = $userInfo['username'] ?? null;
         $params = ['page' => (int)$page, 'per_page' => (int)$perPage];
 
         if ($username !== $this->namespace) {
             $groupList = $this->client->groups()->projects(rawurlencode($this->namespace), $params);
             return $groupList;
-        } else {
-            $cu = new CustomUsers($this->client);
-            $userList = $cu->usersProjects($username, $params);
-            return $userList;
         }
+
+        $userId = $this->userId ?? (isset($userInfo['id']) ? (int) $userInfo['id'] : null);
+        if ($userId === null) {
+            throw new InternalServerErrorException('Unable to determine GitLab user id for projects lookup.');
+        }
+        return $this->client->users()->usersProjects($userId, $params);
     }
 
     /** {@inheritdoc} */
