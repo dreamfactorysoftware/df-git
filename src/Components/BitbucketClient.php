@@ -82,6 +82,23 @@ class BitbucketClient implements GitClientInterface
     }
 
     /**
+     * Falls back to the repository's main branch when no ref is provided.
+     *
+     * @param string      $repo
+     * @param string|null $ref
+     *
+     * @return string
+     */
+    protected function resolveRef($repo, $ref)
+    {
+        if (!empty($ref)) {
+            return $ref;
+        }
+
+        return Arr::get($this->workspace->show($repo), 'mainbranch.name');
+    }
+
+    /**
      * @param int $page
      * @param int $perPage
      *
@@ -126,6 +143,7 @@ class BitbucketClient implements GitClientInterface
     public function repoGetFileInfo($repo, $path, $ref = null)
     {
         $src = new CustomSrc($this->client, $this->username, $repo);
+        $ref = $this->resolveRef($repo, $ref);
 
         $result = $src->show($ref, $path);
         if ('commit_directory' === $result['type']) {
@@ -154,6 +172,7 @@ class BitbucketClient implements GitClientInterface
     public function repoGetFileContent($repo, $path, $ref = null)
     {
         $src = new CustomSrc($this->client, $this->username, $repo);
+        $ref = $this->resolveRef($repo, $ref);
 
         $result = $src->show($ref, $path);
 

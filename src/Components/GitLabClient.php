@@ -73,6 +73,23 @@ class GitLabClient implements ClientInterface
     }
 
     /**
+     * Falls back to the project's default branch when no ref is provided.
+     *
+     * @param string      $repo
+     * @param string|null $ref
+     *
+     * @return string
+     */
+    protected function resolveRef($repo, $ref)
+    {
+        if (!empty($ref)) {
+            return $ref;
+        }
+
+        return Arr::get($this->client->projects()->show($this->getProjectId($repo)), 'default_branch');
+    }
+
+    /**
      * @param $config
      *
      * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
@@ -114,7 +131,7 @@ class GitLabClient implements ClientInterface
     {
         $result = $this->repoList($repo, $path, $ref);
         if (0 === count($result)) {
-            $result = $this->client->repositoryFiles()->getFile($this->getProjectId($repo), $path, $ref);
+            $result = $this->client->repositoryFiles()->getFile($this->getProjectId($repo), $path, $this->resolveRef($repo, $ref));
             $result['path'] = $result['file_path'];
         }
 
@@ -124,7 +141,7 @@ class GitLabClient implements ClientInterface
     /** {@inheritdoc} */
     public function repoGetFileContent($repo, $path = null, $ref = null)
     {
-        return $this->client->repositoryFiles()->getRawFile($this->getProjectId($repo), $path, $ref);
+        return $this->client->repositoryFiles()->getRawFile($this->getProjectId($repo), $path, $this->resolveRef($repo, $ref));
     }
 
 }

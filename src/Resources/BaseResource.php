@@ -31,7 +31,7 @@ class BaseResource extends BaseRestResource
      */
     protected function handleGET()
     {
-        $branch = $this->request->getParameter('branch', $this->request->getParameter('tag', 'master'));
+        $branch = $this->request->getParameter('branch', $this->request->getParameter('tag'));
         $getContent = $this->request->getParameterAsBool('content');
         $asList = $this->request->getParameterAsBool(ApiOptions::AS_LIST);
         $fields = $this->request->getParameter(ApiOptions::FIELDS, '*');
@@ -125,6 +125,12 @@ class BaseResource extends BaseRestResource
                             'schema'      => ['type' => 'string'],
                             'description' => 'A file/folder path'
                         ],
+                        [
+                            'name'        => 'branch',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'string'],
+                            'description' => 'Branch or tag name. If omitted, the repository\'s default branch is used.'
+                        ],
                         ApiOptions::documentOption(ApiOptions::AS_LIST),
                     ],
                     'responses'   => [
@@ -157,6 +163,12 @@ class BaseResource extends BaseRestResource
                             'in'          => 'query',
                             'schema'      => ['type' => 'boolean'],
                             'description' => 'Set true to get file content',
+                        ],
+                        [
+                            'name'        => 'branch',
+                            'in'          => 'query',
+                            'schema'      => ['type' => 'string'],
+                            'description' => 'Branch or tag name. If omitted, the repository\'s default branch is used.'
                         ],
                     ],
                     'responses'   => [
