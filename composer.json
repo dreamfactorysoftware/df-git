@@ -1,81 +1,77 @@
 {
-  "name":        "dreamfactory/df-git",
-  "description": "Git services for DreamFactory Platform 2.0",
-  "keywords":    [
-    "dreamfactory",
-    "api",
-    "rest",
-    "git",
-    "github",
-    "gitlab",
-    "version",
-    "scm",
-    "source",
-    "version"
-  ],
-  "homepage":    "https://www.dreamfactory.com/",
-  "license":     "proprietary",
-  "authors":     [
-    {
-      "name":  "Arif Islam",
-      "email": "arifislam@dreamfactory.com"
+    "name": "dreamfactory/df-git",
+    "description": "Git services for DreamFactory Platform 2.0",
+    "keywords": [
+        "dreamfactory",
+        "api",
+        "rest",
+        "git",
+        "github",
+        "gitlab",
+        "version",
+        "scm",
+        "source",
+        "version"
+    ],
+    "homepage": "https://www.dreamfactory.com/",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Arif Islam",
+            "email": "arifislam@dreamfactory.com"
+        },
+        {
+            "name": "Lee Hicks",
+            "email": "leehicks@dreamfactory.com"
+        }
+    ],
+    "support": {
+        "email": "dspsupport@dreamfactory.com",
+        "source": "https://github.com/dreamfactorysoftware/df-git",
+        "issues": "https://github.com/dreamfactorysoftware/df-git/issues",
+        "wiki": "https://wiki.dreamfactory.com"
     },
-    {
-      "name":  "Lee Hicks",
-      "email": "leehicks@dreamfactory.com"
-    }
-  ],
-  "support":     {
-    "email":  "dspsupport@dreamfactory.com",
-    "source": "https://github.com/dreamfactorysoftware/df-git",
-    "issues": "https://github.com/dreamfactorysoftware/df-git/issues",
-    "wiki":   "https://wiki.dreamfactory.com"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable":     true,
-  "repositories": [
-    {
-      "type": "vcs",
-      "url":  "https://github.com/Stichoza/Laravel-GitHub"
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Infomaniak/Laravel-GitLab"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/broqit/Laravel-Bitbucket"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "laravel/helpers": "^1.8",
+        "dreamfactory/df-core": "~1.0.4",
+        "graham-campbell/github": "^13.1",
+        "graham-campbell/gitlab": "dev-add-laravel-13",
+        "graham-campbell/bitbucket": "11.0.x-dev",
+        "php-http/guzzle7-adapter": "^1.0.0"
     },
-    {
-      "type": "vcs",
-      "url":  "https://github.com/Infomaniak/Laravel-GitLab"
+    "require-dev": {
+        "laravel/framework": "^13.7",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^11.5.3",
+        "orchestra/testbench": "^11.0"
     },
-    {
-      "type": "vcs",
-      "url":  "https://github.com/broqit/Laravel-Bitbucket"
-    }
-  ],
-  "require":     {
-    "php": "^8.3",
-    "laravel/helpers": "^1.8",
-    "dreamfactory/df-core": "~1.0.4",
-    "graham-campbell/github": "13.0.x-dev",
-    "graham-campbell/gitlab": "dev-add-laravel-13",
-    "graham-campbell/bitbucket": "11.0.x-dev",
-    "php-http/guzzle7-adapter": "^1.0.0"
-  },
-  "require-dev": {
-    "laravel/framework":    "^13.7",
-    "mockery/mockery":      "^1.6",
-    "nunomaduro/collision": "^8.6",
-    "phpunit/phpunit":      "^11.5.3",
-    "orchestra/testbench":  "^11.0"
-  },
-  "autoload":    {
-    "psr-4": {
-      "DreamFactory\\Core\\Git\\": "src/"
-    }
-  },
-  "extra":       {
-    "branch-alias": {
-      "dev-develop": "0.3.x-dev"
+    "autoload": {
+        "psr-4": {
+            "DreamFactory\\Core\\Git\\": "src/"
+        }
     },
-    "laravel": {
-      "providers": [
-        "DreamFactory\\Core\\Git\\ServiceProvider"
-      ]
+    "extra": {
+        "branch-alias": {
+            "dev-develop": "0.3.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "DreamFactory\\Core\\Git\\ServiceProvider"
+            ]
+        }
     }
-  }
 }
