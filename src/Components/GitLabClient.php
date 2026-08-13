@@ -6,23 +6,7 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Git\Contracts\ClientInterface;
 use GrahamCampbell\GitLab\Auth\AuthenticatorFactory;
 use Gitlab\Client;
-use Gitlab\Api\Users;
 use Illuminate\Support\Arr;
-
-class CustomUsers extends Users
-{
-    /**
-     * @param int $id
-     * @param array $params
-     * @return mixed
-     */
-    public function usersProjects($id, array $params = [])
-    {
-        $resolver = $this->createOptionsResolver();
-
-        return $this->get('users/' . $this->encodePath($id) . '/projects', $resolver->resolve($params));
-    }
-}
 
 class GitLabClient implements ClientInterface
 {
@@ -32,6 +16,9 @@ class GitLabClient implements ClientInterface
 
     /** @var string */
     protected $namespace;
+
+    /** @var int|null */
+    protected $userId;
 
     /**
      * GitLabClient constructor.
@@ -58,6 +45,7 @@ class GitLabClient implements ClientInterface
                 throw new InternalServerErrorException('No authenticated user found for GitLab client. Please check GitLab service configuration.');
             }
             $namespace = $userInfo['username'];
+            $this->userId = isset($userInfo['id']) ? (int) $userInfo['id'] : null;
         }
         $this->namespace = $namespace;
     }
@@ -70,6 +58,23 @@ class GitLabClient implements ClientInterface
     protected function getProjectId($name)
     {
         return $this->namespace . '/' . $name;
+    }
+
+    /**
+     * Falls back to the project's default branch when no ref is provided.
+     *
+     * @param string      $repo
+     * @param string|null $ref
+     *
+     * @return string
+     */
+    protected function resolveRef($repo, $ref)
+    {
+        if (!empty($ref)) {
+            return $ref;
+        }
+
+        return Arr::get($this->client->projects()->show($this->getProjectId($repo)), 'default_branch');
     }
 
     /**
@@ -90,17 +95,20 @@ class GitLabClient implements ClientInterface
     /** {@inheritdoc} */
     public function repoAll($page = 1, $perPage = 50)
     {
-        $username = $this->client->users()->me()['username'];
+        $userInfo = $this->client->users()->me();
+        $username = $userInfo['username'] ?? null;
         $params = ['page' => (int)$page, 'per_page' => (int)$perPage];
 
         if ($username !== $this->namespace) {
             $groupList = $this->client->groups()->projects(rawurlencode($this->namespace), $params);
             return $groupList;
-        } else {
-            $cu = new CustomUsers($this->client);
-            $userList = $cu->usersProjects($username, $params);
-            return $userList;
         }
+
+        $userId = $this->userId ?? (isset($userInfo['id']) ? (int) $userInfo['id'] : null);
+        if ($userId === null) {
+            throw new InternalServerErrorException('Unable to determine GitLab user id for projects lookup.');
+        }
+        return $this->client->users()->usersProjects($userId, $params);
     }
 
     /** {@inheritdoc} */
@@ -114,7 +122,7 @@ class GitLabClient implements ClientInterface
     {
         $result = $this->repoList($repo, $path, $ref);
         if (0 === count($result)) {
-            $result = $this->client->repositoryFiles()->getFile($this->getProjectId($repo), $path, $ref);
+            $result = $this->client->repositoryFiles()->getFile($this->getProjectId($repo), $path, $this->resolveRef($repo, $ref));
             $result['path'] = $result['file_path'];
         }
 
@@ -124,7 +132,7 @@ class GitLabClient implements ClientInterface
     /** {@inheritdoc} */
     public function repoGetFileContent($repo, $path = null, $ref = null)
     {
-        return $this->client->repositoryFiles()->getRawFile($this->getProjectId($repo), $path, $ref);
+        return $this->client->repositoryFiles()->getRawFile($this->getProjectId($repo), $path, $this->resolveRef($repo, $ref));
     }
 
 }
